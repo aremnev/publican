@@ -31,48 +31,6 @@
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>1.5</version>
-				<configuration>
-					<transformers>
-						<transformer
-							implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-							<mainClass>net.thumbtack.onepm.server.base.BaseServer</mainClass>
-						</transformer>
-						<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-					</transformers>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.thrift.tools</groupId>
-				<artifactId>maven-thrift-plugin</artifactId>
-				<version>0.1.11</version>
-				<configuration>
-					<thriftExecutable>thrift</thriftExecutable>
-					<outputDirectory>src/main/java-gen</outputDirectory>
-				</configuration>
-				<executions>
-					<execution>
-						<id>thrift-sources</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<version>2.1</version>
 			</plugin>
