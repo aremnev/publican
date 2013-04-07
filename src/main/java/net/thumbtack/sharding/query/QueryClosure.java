@@ -18,5 +18,5 @@ public abstract class QueryClosure<V>{
 		return executorType;
 	}
 
-	public abstract V call(SqlSession session);
+	public abstract V call(Transaction transaction);
 }

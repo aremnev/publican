@@ -1,6 +1,5 @@
 package net.thumbtack.sharding;
 
-
 import net.thumbtack.sharding.query.QueryClosure;
 import net.thumbtack.sharding.query.QueryFactory;
 import net.thumbtack.sharding.query.QueryType;
@@ -80,10 +79,6 @@ public class BaseDaoImpl implements Cacheable {
 		sb.append(s.replace("%", "\\%"));
 		sb.append("%");
 		return sb.toString();
-	}
-
-	public static RowBounds getRowBounds(int page, int size) {
-		return new RowBounds(size * (page - 1), size);
 	}
 
 	// select from specific shard defined by userId
