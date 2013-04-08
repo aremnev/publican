@@ -2,7 +2,7 @@ package net.thumbtack.sharding;
 
 
 import net.thumbtack.sharding.query.QueryClosure;
-import net.thumbtack.sharding.query.QueryFactory;
+import net.thumbtack.sharding.query.SqlQueryEngine;
 import net.thumbtack.sharding.query.QueryType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.io.Resources;
@@ -19,16 +19,16 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * Base class for all DAO classes. 
+ * Base class for all sharded DAO classes.
  */
-public class BaseDaoImpl implements Cacheable {
+abstract public class ShardedDao<T> implements Dao {
 
 	private static final String MYBATIS_CONFIG_XML = "MyBatisConfig.xml";
 	private static final String SHARD_PARAM = "shard";
 
 	private ExecutorService selectExecutor;
 
-	protected QueryFactory queryFactory;
+	protected SqlQueryEngine sqlQueryEngine;
 
 	public static Map<Integer, SqlSessionFactory> buildSessionFactoryMap(Properties props) throws IOException {
 		List<Properties> shardProps = extractShardProps(props);
@@ -47,9 +47,9 @@ public class BaseDaoImpl implements Cacheable {
 		return sessionFactoryMap;
 	}
 
-	public BaseDaoImpl(QueryFactory queryFactory) {
-		this.queryFactory = queryFactory;
-		selectExecutor = Executors.newFixedThreadPool(queryFactory.shardsCount() * 10, new NamedThreadFactory("selectExecutor"));
+	public ShardedDao(SqlQueryEngine sqlQueryEngine) {
+		this.sqlQueryEngine = sqlQueryEngine;
+		selectExecutor = Executors.newFixedThreadPool(sqlQueryEngine.shardsCount() * 10, new NamedThreadFactory("selectExecutor"));
 	}
 
 	@Override
@@ -88,38 +88,38 @@ public class BaseDaoImpl implements Cacheable {
 
 	// select from specific shard defined by userId
 	protected <U> U selectSpecShard(QueryClosure<U> closure, long id) {
-		return queryFactory.getQuery(QueryType.selectSpecShard).query(closure, id);
+		return sqlQueryEngine.getQuery(QueryType.selectSpecShard).query(closure, id);
 	}
 
 	// select from undefined shard
 	protected <U> U selectShard(QueryClosure<U> closure) {
-		return queryFactory.getQuery(QueryType.selectShard).query(closure);
+		return sqlQueryEngine.getQuery(QueryType.selectShard).query(closure);
 	}
 
 	// select from any shard
 	protected <U> U selectAnyShard(QueryClosure<U> closure) {
-		return queryFactory.getQuery(QueryType.selectAnyShard).query(closure);
+		return sqlQueryEngine.getQuery(QueryType.selectAnyShard).query(closure);
 	}
 
 	// select from all shards with results union
 	protected <U> List<U> selectAllShards(QueryClosure<List<U>> closure) {
-		return queryFactory.getQuery(QueryType.selectAllShards).query(closure);
+		return sqlQueryEngine.getQuery(QueryType.selectAllShards).query(closure);
 	}
 
 	// select from all shards with results union
 	protected Integer selectSumAllShards(QueryClosure<Integer> closure) {
-		return queryFactory.getQuery(QueryType.selectAllShardsSum).query(closure);
+		return sqlQueryEngine.getQuery(QueryType.selectAllShardsSum).query(closure);
 	}
 
 	// update on specific shard defined by userId
 	protected <U> U updateSpecShard(QueryClosure<U> closure, long id) {
-		return queryFactory.getQuery(QueryType.updateSpecShard).query(closure, id);
+		return sqlQueryEngine.getQuery(QueryType.updateSpecShard).query(closure, id);
 	}
 
 	// update on all shards
 	// the result of the method is the last successful closure call result
 	protected <U> U updateAllShards(QueryClosure<U> closure) {
-		return queryFactory.getQuery(QueryType.updateAllShards).query(closure);
+		return sqlQueryEngine.getQuery(QueryType.updateAllShards).query(closure);
 	}
 
 	protected <U> Future<U> submit(Callable<U> task) {
@@ -165,7 +165,7 @@ public class BaseDaoImpl implements Cacheable {
 		Map<Integer, List<T>> result = new HashMap<Integer, List<T>>();
 		for (T entity : entities) {
 		    Long id = accessor.id(entity);
-			int shardNum = queryFactory.shardIndex(id);
+			int shardNum = sqlQueryEngine.shardIndex(id);
 			if (!result.containsKey(shardNum)) {
 				result.put(shardNum, new ArrayList<T>());
 			}

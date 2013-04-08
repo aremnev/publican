@@ -1,5 +1,6 @@
 package net.thumbtack.sharding.query;
 
+import net.thumbtack.sharding.Sharding;
 import org.slf4j.Logger;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -8,10 +9,10 @@ import java.util.Map;
 
 public abstract class Query {
 
-	protected QueryEngine engine;
+	protected Sharding sharding;
 
-	public Query(QueryEngine engine) {
-		this.engine = engine;
+	public Query(Sharding sharding) {
+		this.sharding = sharding;
 	}
 
 	public <U> U query(QueryClosure<U> closure) {

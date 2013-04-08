@@ -29,4 +29,5 @@ public class SelectAllShards extends Query {
 		}
 		return (U) result;
 	}
+
 }

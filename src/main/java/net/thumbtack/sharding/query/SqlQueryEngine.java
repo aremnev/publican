@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 
 import static net.thumbtack.sharding.query.QueryType.*;
 
-public class QueryFactory implements QueryEngine {
+public class SqlQueryEngine implements QueryEngine {
 
 	public Random random = new Random();
 
@@ -35,7 +35,7 @@ public class QueryFactory implements QueryEngine {
 
 	private ExecutorService queryExecutor;
 
-	public QueryFactory(Map<Integer, SqlSessionFactory> sessionFactoryMap) {
+	public SqlQueryEngine(Map<Integer, SqlSessionFactory> sessionFactoryMap) {
 		this.sessionFactoryMap = sessionFactoryMap;
 
 		queries = new HashMap<QueryType, Query>();
