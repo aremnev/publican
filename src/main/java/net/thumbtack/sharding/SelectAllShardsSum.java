@@ -1,27 +1,22 @@
 package net.thumbtack.sharding;
 
-import org.apache.ibatis.session.SqlSession;
-import org.apache.ibatis.session.SqlSessionFactory;
+import java.util.List;
 
 public class SelectAllShardsSum extends Query {
 
-	public SelectAllShardsSum(QueryEngine engine) {
-		super(engine);
-	}
-
 	@Override
 	@SuppressWarnings("unchecked")
-	public <U> U query(QueryClosure<U> closure) {
+	public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
 		Integer result = 0;
-		for (int shardKey : engine.shardsKeys()) {
-			SqlSession session = engine.openSession(shardKey, closure.getExecutorType());
+		for (final Connection connection : shards) {
+			connection.open();
 			try {
-				Integer res = (Integer) closure.call(session);
+				Integer res = (Integer) closure.call(connection);
 				if (res != null) {
 					result += res;
 				}
 			} finally {
-				session.close();
+				connection.close();
 			}
 		}
 		return (U) result;

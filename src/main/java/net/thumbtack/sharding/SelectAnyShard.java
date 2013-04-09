@@ -1,21 +1,27 @@
 package net.thumbtack.sharding;
 
-import org.apache.ibatis.session.SqlSession;
+import net.thumbtack.helper.Util;
+
+import java.util.List;
+import java.util.Random;
 
 public class SelectAnyShard extends Query {
 
-	public SelectAnyShard(QueryEngine engine) {
-		super(engine);
+	private Random random;
+
+	public SelectAnyShard(Random random) {
+		this.random = random;
 	}
 
 	@Override
-	public <U> U query(QueryClosure<U> closure) {
+	public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
 		U result = null;
-		SqlSession session = engine.openSession(closure.getExecutorType());
+		Connection connection = Util.getRandom(random, shards);
+		connection.open();
 		try {
-			result = closure.call(session);
+			result = closure.call(connection);
 		} finally {
-			session.close();
+			connection.close();
 		}
 		return result;
 	}

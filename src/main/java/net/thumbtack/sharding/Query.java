@@ -1,27 +1,13 @@
 package net.thumbtack.sharding;
 
 import org.slf4j.Logger;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
 
 public abstract class Query {
 
-	protected QueryEngine engine;
+	public abstract  <U> U query(QueryClosure<U> closure, List<Connection> shards);
 
-	public Query(QueryEngine engine) {
-		this.engine = engine;
-	}
-
-	public <U> U query(QueryClosure<U> closure) {
-		throw new NotImplementedException();
-	}
-
-	public <U> U query(QueryClosure<U> closure, long id) {
-		throw new NotImplementedException();
-	}
-
-	@SuppressWarnings("ThrowableResultOfMethodCallIgnored")
 	protected static void logErrors(Logger logger, Object result, List<QueryError> errors) {
 		StringBuilder sb = new StringBuilder();
 		for (QueryError error : errors) {

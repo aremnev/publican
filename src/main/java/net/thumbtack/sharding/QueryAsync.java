@@ -1,28 +1,30 @@
 package net.thumbtack.sharding;
 
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public abstract class QueryParallel extends Query {
+public abstract class QueryAsync extends Query {
 
-	public QueryParallel(QueryEngine engine) {
-		super(engine);
+	private Executor executor;
+
+	public QueryAsync(Executor executor) {
+		this.executor = executor;
 	}
 
 	@Override
-	public <U> U query(final QueryClosure<U> closure) {
+	public <U> U query(final QueryClosure<U> closure, List<Connection> shards) {
 		final Lock lock = new ReentrantLock();
 		final Condition condition = lock.newCondition();
 		// counter of threads that already executed
-		final MutableInt threadsCount = new MutableInt(engine.shardsKeys().size());
+		final MutableInt threadsCount = new MutableInt(shards.size());
 		final Object result = this.<U>createResult();
 		// all errors are accumulated here
 		final List<QueryError> errors = Collections.synchronizedList(new ArrayList<QueryError>());
@@ -30,7 +32,7 @@ public abstract class QueryParallel extends Query {
 		// for each shard one thread is run
 		// threads are synchronized by lock
 		// when thread has done it send condition.signal();
-		for (final int shardKey : engine.shardsKeys()) {
+		for (final Connection connection : shards) {
 			// we can't do it too fast since db (or MyBatis) returns null by unclear reason
 			// so send thread to sleep 1 ms
 			try {
@@ -40,24 +42,24 @@ public abstract class QueryParallel extends Query {
 
 			final Thread currentThread = Thread.currentThread();
 
-			engine.execute(new Runnable() {
+			executor.execute(new Runnable() {
 				@SuppressWarnings("ThrowableResultOfMethodCallIgnored")
 				@Override
 				public void run() {
-					SqlSession session = engine.openSession(shardKey, closure.getExecutorType());
+					connection.open();
 					U res = null;
 					try {
-						res = closure.call(session);
+						res = closure.call(connection);
 						if (doCommit()) {
-							session.commit();
+							connection.commit();
 						}
 					} catch (Throwable t) {
 						if (doCommit()) {
-							session.rollback();
+							connection.rollback();
 						}
-						errors.add(new QueryError(shardKey, t, currentThread.getStackTrace()));
+						errors.add(new QueryError(connection.toString(), t, currentThread.getStackTrace()));
 					} finally {
-						session.close();
+						connection.close();
 					}
 
 					lock.lock();

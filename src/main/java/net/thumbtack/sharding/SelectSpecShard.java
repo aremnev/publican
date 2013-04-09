@@ -1,21 +1,19 @@
 package net.thumbtack.sharding;
 
-import org.apache.ibatis.session.SqlSession;
+
+import java.util.List;
 
 public class SelectSpecShard extends Query {
 
-	public SelectSpecShard(QueryEngine engine) {
-		super(engine);
-	}
-
 	@Override
-	public <U> U query(QueryClosure<U> closure, long id) {
+	public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
 		U result = null;
-		SqlSession session = engine.openSession(id, closure.getExecutorType());
+		Connection connection = shards.get(0);
+		connection.open();
 		try {
-			result = closure.call(session);
+			result = closure.call(connection);
 		} finally {
-			session.close();
+			connection.close();
 		}
 		return result;
 	}

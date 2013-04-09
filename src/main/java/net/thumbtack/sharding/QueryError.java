@@ -2,13 +2,13 @@ package net.thumbtack.sharding;
 
 public class QueryError {
 
-	public final int shard;
+	public final String shard;
 
 	public final Throwable throwable;
 
 	public final StackTraceElement[] parentStackTrace;
 
-	public QueryError(int shard, Throwable throwable, StackTraceElement[] parentStackTrace) {
+	public QueryError(String shard, Throwable throwable, StackTraceElement[] parentStackTrace) {
 		this.shard = shard;
 		this.throwable = throwable;
 		this.parentStackTrace = parentStackTrace;

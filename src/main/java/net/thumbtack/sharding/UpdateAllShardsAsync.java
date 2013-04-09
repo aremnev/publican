@@ -1,21 +1,18 @@
 package net.thumbtack.sharding;
 
-import net.thumbtack.sharding.QueryEngine;
-import net.thumbtack.sharding.QueryError;
-import net.thumbtack.sharding.QueryParallel;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.Executor;
 
-public class UpdateAllShardsParallel extends QueryParallel {
+public class UpdateAllShardsAsync extends QueryAsync {
 
-	private static final Logger logger = LoggerFactory.getLogger("UpdateAllShardsParallel");
+	private static final Logger logger = LoggerFactory.getLogger("UpdateAllShardsAsync");
 
-	public UpdateAllShardsParallel(QueryEngine engine) {
-		super(engine);
+	public UpdateAllShardsAsync(Executor executor) {
+		super(executor);
 	}
 
 	@Override

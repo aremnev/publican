@@ -4,12 +4,14 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SelectAllShardsSumParallel extends QueryParallel {
+import java.util.concurrent.Executor;
 
-	private static final Logger logger = LoggerFactory.getLogger("SelectAllShardsSumParallel");
+public class SelectAllShardsSumAsync extends QueryAsync {
 
-	public SelectAllShardsSumParallel(QueryEngine engine) {
-		super(engine);
+	private static final Logger logger = LoggerFactory.getLogger("SelectAllShardsSumAsync");
+
+	public SelectAllShardsSumAsync(Executor executor) {
+		super(executor);
 	}
 
 	@Override

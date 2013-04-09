@@ -1,18 +1,17 @@
 package net.thumbtack.sharding;
 
-import net.thumbtack.sharding.QueryEngine;
-import net.thumbtack.sharding.QueryParallel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.Executor;
 
-public class SelectAllShardsParallel extends QueryParallel {
+public class SelectAllShardsAsync extends QueryAsync {
 
-	private static final Logger logger = LoggerFactory.getLogger("SelectAllShardsParallel");
+	private static final Logger logger = LoggerFactory.getLogger("SelectAllShardsAsync");
 
-	public SelectAllShardsParallel(QueryEngine engine) {
-		super(engine);
+	public SelectAllShardsAsync(Executor executor) {
+		super(executor);
 	}
 
 	@Override
