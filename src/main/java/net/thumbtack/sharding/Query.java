@@ -1,4 +1,4 @@
-package net.thumbtack.sharding.query;
+package net.thumbtack.sharding;
 
 import org.slf4j.Logger;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;

@@ -1,6 +1,6 @@
-package net.thumbtack.sharding.query;
+package net.thumbtack.sharding;
 
-import net.thumbtack.sharding.NamedThreadFactory;
+import net.thumbtack.helper.NamedThreadFactory;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -13,7 +13,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static net.thumbtack.sharding.query.QueryType.*;
+import static net.thumbtack.sharding.QueryType.*;
 
 public class QueryFactory implements QueryEngine {
 
@@ -39,22 +39,22 @@ public class QueryFactory implements QueryEngine {
 		this.sessionFactoryMap = sessionFactoryMap;
 
 		queries = new HashMap<QueryType, Query>();
-		queries.put(selectSpecShard, new SelectSpecShard(this));
-		queries.put(selectShard, new SelectShard(this));
-		queries.put(selectAnyShard, new SelectAnyShard(this));
-		queries.put(selectAllShards, new SelectAllShards(this));
-		queries.put(selectAllShardsSum, new SelectAllShardsSum(this));
-		queries.put(updateSpecShard, new UpdateSpecShard(this));
-		queries.put(updateAllShards, new UpdateAllShards(this));
+		queries.put(QueryType.selectSpecShard, new SelectSpecShard(this));
+		queries.put(QueryType.selectShard, new SelectShard(this));
+		queries.put(QueryType.selectAnyShard, new SelectAnyShard(this));
+		queries.put(QueryType.selectAllShards, new SelectAllShards(this));
+		queries.put(QueryType.selectAllShardsSum, new SelectAllShardsSum(this));
+		queries.put(QueryType.updateSpecShard, new UpdateSpecShard(this));
+		queries.put(QueryType.updateAllShards, new UpdateAllShards(this));
 
 		queriesParallel = new HashMap<QueryType, Query>();
-		queriesParallel.put(selectSpecShard, new SelectSpecShard(this));
-		queriesParallel.put(selectShard, new SelectShardParallel(this));
-		queriesParallel.put(selectAnyShard, new SelectAnyShard(this));
-		queriesParallel.put(selectAllShards, new SelectAllShardsParallel(this));
-		queriesParallel.put(selectAllShardsSum, new SelectAllShardsSumParallel(this));
-		queriesParallel.put(updateSpecShard, new UpdateSpecShard(this));
-		queriesParallel.put(updateAllShards, new UpdateAllShardsParallel(this));
+		queriesParallel.put(QueryType.selectSpecShard, new SelectSpecShard(this));
+		queriesParallel.put(QueryType.selectShard, new SelectShardParallel(this));
+		queriesParallel.put(QueryType.selectAnyShard, new SelectAnyShard(this));
+		queriesParallel.put(QueryType.selectAllShards, new SelectAllShardsParallel(this));
+		queriesParallel.put(QueryType.selectAllShardsSum, new SelectAllShardsSumParallel(this));
+		queriesParallel.put(QueryType.updateSpecShard, new UpdateSpecShard(this));
+		queriesParallel.put(QueryType.updateAllShards, new UpdateAllShardsParallel(this));
 	}
 
 	public void cleanup() {

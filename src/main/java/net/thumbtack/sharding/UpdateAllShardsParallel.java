@@ -1,8 +1,8 @@
-package net.thumbtack.sharding.query;
+package net.thumbtack.sharding;
 
-import net.thumbtack.sharding.query.QueryEngine;
-import net.thumbtack.sharding.query.QueryError;
-import net.thumbtack.sharding.query.QueryParallel;
+import net.thumbtack.sharding.QueryEngine;
+import net.thumbtack.sharding.QueryError;
+import net.thumbtack.sharding.QueryParallel;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,7 +1,7 @@
 package net.thumbtack.sharding;
 
-import net.thumbtack.sharding.query.Query;
-import net.thumbtack.sharding.query.QueryClosure;
+import net.thumbtack.sharding.Query;
+import net.thumbtack.sharding.QueryClosure;
 
 public class Sharding {
 

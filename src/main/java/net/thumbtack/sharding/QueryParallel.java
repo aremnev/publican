@@ -1,4 +1,4 @@
-package net.thumbtack.sharding.query;
+package net.thumbtack.sharding;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.ibatis.session.SqlSession;

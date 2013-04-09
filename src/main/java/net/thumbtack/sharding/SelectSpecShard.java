@@ -1,10 +1,10 @@
-package net.thumbtack.sharding.query;
+package net.thumbtack.sharding;
 
 import org.apache.ibatis.session.SqlSession;
 
-public class UpdateSpecShard extends Query {
+public class SelectSpecShard extends Query {
 
-	public UpdateSpecShard(QueryEngine engine) {
+	public SelectSpecShard(QueryEngine engine) {
 		super(engine);
 	}
 
@@ -14,10 +14,6 @@ public class UpdateSpecShard extends Query {
 		SqlSession session = engine.openSession(id, closure.getExecutorType());
 		try {
 			result = closure.call(session);
-			session.commit();
-		} catch (RuntimeException e) {
-			session.rollback();
-			throw e;
 		} finally {
 			session.close();
 		}

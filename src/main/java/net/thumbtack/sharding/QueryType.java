@@ -1,4 +1,4 @@
-package net.thumbtack.sharding.query;
+package net.thumbtack.sharding;
 
 public enum QueryType {
 	selectSpecShard,    // select from specific shard

@@ -1,4 +1,4 @@
-package net.thumbtack.sharding;
+package net.thumbtack.helper;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
