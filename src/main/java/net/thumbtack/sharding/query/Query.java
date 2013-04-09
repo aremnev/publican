@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
-import java.util.Map;
 
 public abstract class Query {
 

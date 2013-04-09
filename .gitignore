@@ -1,6 +1,6 @@
 target/
 .idea/
 
-sharded-dao.iml
+*.iml
 sharded-dao.ipr
 sharded-dao.iws
