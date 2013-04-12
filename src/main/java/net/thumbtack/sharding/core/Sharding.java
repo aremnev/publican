@@ -24,6 +24,8 @@ public class Sharding {
 	public Sharding(Configuration config) {
 		this.config = config;
 
+		shardResolver = new ShardResolver(config.getShards(), config.getKeyMapper());
+
 		Random random = new Random(config.getSelectAnyRandomSeed());
 		queryRegistry.register(SELECT_SPEC_SHARD, true, new SelectSpecShard());
 		queryRegistry.register(SELECT_SHARD, true, new SelectShard());
@@ -62,6 +64,5 @@ public class Sharding {
 			list.add(connection);
 			return list;
 		}
-
 	}
 }
