@@ -1,4 +1,4 @@
-package net.thumbtack.sharding;
+package net.thumbtack.sharding.core;
 
 public class QueryError {
 

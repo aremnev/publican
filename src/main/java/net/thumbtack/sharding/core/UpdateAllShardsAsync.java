@@ -1,4 +1,4 @@
-package net.thumbtack.sharding;
+package net.thumbtack.sharding.core;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.slf4j.Logger;

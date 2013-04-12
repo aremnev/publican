@@ -1,11 +1,7 @@
-package net.thumbtack.sharding;
-
-import net.thumbtack.sharding.Query;
-import net.thumbtack.sharding.QueryClosure;
+package net.thumbtack.sharding.core;
 
 import java.util.*;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Sharding {
@@ -20,14 +16,15 @@ public class Sharding {
 	public static final int UPDATE_SPEC_SHARD = 6;          // update on specific shard
 	public static final int UPDATE_ALL_SHARDS = 7;          // update on all shards
 
-	private Map<String, Shard> shards = new HashMap<String, Shard>(0);
-	private List<KeyMapper> keyMappers = new ArrayList<KeyMapper>(0);
+	private ShardResolver shardResolver;
 
 	private QueryRegistry queryRegistry = new QueryRegistry();
+	private Configuration config;
 
-	public Sharding() {
-		long randomSeed = 4; // TODO get random seed from config
-		Random random = new Random(randomSeed);
+	public Sharding(Configuration config) {
+		this.config = config;
+
+		Random random = new Random(config.getSelectAnyRandomSeed());
 		queryRegistry.register(SELECT_SPEC_SHARD, true, new SelectSpecShard());
 		queryRegistry.register(SELECT_SHARD, true, new SelectShard());
 		queryRegistry.register(SELECT_ANY_SHARD, true, new SelectAnyShard(random));
@@ -36,8 +33,7 @@ public class Sharding {
 		queryRegistry.register(UPDATE_SPEC_SHARD, true, new SelectSpecShard());
 		queryRegistry.register(UPDATE_ALL_SHARDS, true, new SelectAllShards());
 
-		int nThreads = 20; // TODO get nThreads from config
-		Executor queryExecutor = Executors.newFixedThreadPool(nThreads);
+		Executor queryExecutor = Executors.newFixedThreadPool(config.getNumberOfWorkerThreads());
 		queryRegistry.register(SELECT_SPEC_SHARD, false, new SelectSpecShard());
 		queryRegistry.register(SELECT_SHARD, false, new SelectShard());
 		queryRegistry.register(SELECT_ANY_SHARD, false, new SelectAnyShard(random));
@@ -47,13 +43,25 @@ public class Sharding {
 		queryRegistry.register(UPDATE_ALL_SHARDS, false, new SelectAllShardsAsync(queryExecutor));
 	}
 
-	protected <V> V execute(int queryType, long id, QueryClosure<V> closure) {
+	public <V> V execute(int queryType, long id, QueryClosure<V> closure) {
 		Query query = queryRegistry.get(queryType);
-		List<Connection> connections = new ArrayList<Connection>(); // TODO resolve shards and get connections
+		List<Connection> connections = resolveShards(queryType, id);
 		return query.query(closure, connections);
 	}
 
-	protected <V> V execute(int queryType, QueryClosure<V> closure) {
+	public <V> V execute(int queryType, QueryClosure<V> closure) {
 		return execute(queryType, INVALID_ID, closure);
+	}
+
+	private List<Connection> resolveShards(int queryType, long id) {
+		if (id == INVALID_ID) {
+			return shardResolver.resolveAll();
+		} else {
+			Connection connection = shardResolver.resolveId(id);
+			List<Connection> list = new ArrayList<Connection>(1);
+			list.add(connection);
+			return list;
+		}
+
 	}
 }

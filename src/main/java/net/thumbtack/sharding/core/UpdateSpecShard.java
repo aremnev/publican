@@ -1,9 +1,8 @@
-package net.thumbtack.sharding;
-
+package net.thumbtack.sharding.core;
 
 import java.util.List;
 
-public class SelectSpecShard extends Query {
+public class UpdateSpecShard extends Query {
 
 	@Override
 	public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
@@ -12,6 +11,10 @@ public class SelectSpecShard extends Query {
 		connection.open();
 		try {
 			result = closure.call(connection);
+			connection.commit();
+		} catch (RuntimeException e) {
+			connection.rollback();
+			throw e;
 		} finally {
 			connection.close();
 		}
