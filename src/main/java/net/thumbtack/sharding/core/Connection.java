@@ -2,11 +2,11 @@ package net.thumbtack.sharding.core;
 
 public interface Connection {
 
-    void open();
+    void open() throws Exception;
 
-    void commit();
+    void commit() throws Exception;
 
-    void rollback();
+    void rollback() throws Exception;
 
-    void close();
+    void close() throws Exception;
 }

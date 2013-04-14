@@ -45,39 +45,29 @@ public class ShardResolver {
         }
 
         @Override
-        public void open() {
+        public void open() throws Exception {
             if (connection != null) {
-                // TODO avoid RuntimeException
-                throw new RuntimeException("Connection already is opened");
+                throw new Exception("Connection already is opened");
             }
             connection = shard.getConnection();
         }
 
         @Override
         public void commit() {
-            if (connection == null) {
-                // TODO avoid RuntimeException
-                throw new RuntimeException("Connection is not opened");
-            }
-            connection.commit();
+            if (connection != null)
+                connection.commit();
         }
 
         @Override
         public void rollback() {
-            if (connection == null) {
-                // TODO avoid RuntimeException
-                throw new RuntimeException("Connection is not opened");
-            }
-            connection.rollback();
+            if (connection != null)
+                connection.rollback();
         }
 
         @Override
         public void close() {
-            if (connection == null) {
-                // TODO avoid RuntimeException
-                throw new RuntimeException("Connection is not opened");
-            }
-            connection.close();
+            if (connection != null)
+                connection.close();
         }
     }
 }

@@ -1,7 +1,8 @@
 package net.thumbtack.sharding.core;
 
 public interface Shard {
+
     long getId();
 
-    Connection getConnection();
+    Connection getConnection() throws Exception;
 }
