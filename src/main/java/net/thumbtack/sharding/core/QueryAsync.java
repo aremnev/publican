@@ -6,16 +6,17 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executor;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class QueryAsync extends Query {
 
-    private Executor executor;
+    private ExecutorService executor;
 
-    public QueryAsync(Executor executor) {
+    public QueryAsync(ExecutorService executor) {
         this.executor = executor;
     }
 
@@ -42,10 +43,10 @@ public abstract class QueryAsync extends Query {
 
             final Thread currentThread = Thread.currentThread();
 
-            executor.execute(new Runnable() {
-                @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+            executor.submit(new Callable<Object>() {
                 @Override
-                public void run() {
+                public Object call() throws Exception {
+                    logger().debug(connection.toString());
                     connection.open();
                     U res = null;
                     try {
@@ -70,6 +71,7 @@ public abstract class QueryAsync extends Query {
                     } finally {
                         lock.unlock();
                     }
+                    return null;
                 }
             });
         }

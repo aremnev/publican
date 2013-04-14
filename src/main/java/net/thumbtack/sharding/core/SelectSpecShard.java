@@ -6,7 +6,7 @@ import java.util.List;
 public class SelectSpecShard extends Query {
 
     @Override
-    public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
+    public <U> U query(QueryClosure<U> closure, List<Connection> shards) throws Exception {
         U result = null;
         Connection connection = shards.get(0);
         connection.open();

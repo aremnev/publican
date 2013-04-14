@@ -7,7 +7,7 @@ public class SelectAllShards extends Query {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
+    public <U> U query(QueryClosure<U> closure, List<Connection> shards) throws Exception {
         List<Object> result = new LinkedList<Object>();
         for (Connection connection : shards) {
             connection.open();

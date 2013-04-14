@@ -4,13 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 public class SelectAllShardsAsync extends QueryAsync {
 
     private static final Logger logger = LoggerFactory.getLogger("SelectAllShardsAsync");
 
-    public SelectAllShardsAsync(Executor executor) {
+    public SelectAllShardsAsync(ExecutorService executor) {
         super(executor);
     }
 

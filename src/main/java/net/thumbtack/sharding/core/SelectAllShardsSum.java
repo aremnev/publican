@@ -6,7 +6,7 @@ public class SelectAllShardsSum extends Query {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
+    public <U> U query(QueryClosure<U> closure, List<Connection> shards) throws Exception {
         Integer result = 0;
         for (final Connection connection : shards) {
             connection.open();

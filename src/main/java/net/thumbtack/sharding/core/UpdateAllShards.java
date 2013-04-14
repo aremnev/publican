@@ -11,7 +11,7 @@ public class UpdateAllShards extends Query {
     private static final Logger logger = LoggerFactory.getLogger("UpdateAllShards");
 
     @Override
-    public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
+    public <U> U query(QueryClosure<U> closure, List<Connection> shards) throws Exception {
         U result = null;
         int shardNum = 0;
         try {

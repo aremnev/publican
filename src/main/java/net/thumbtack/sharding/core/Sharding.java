@@ -2,6 +2,7 @@ package net.thumbtack.sharding.core;
 
 import java.util.*;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Sharding {
@@ -32,26 +33,26 @@ public class Sharding {
         queryRegistry.register(SELECT_ANY_SHARD, true, new SelectAnyShard(random));
         queryRegistry.register(SELECT_ALL_SHARDS, true, new SelectAllShards());
         queryRegistry.register(SELECT_ALL_SHARDS_SUM, true, new SelectAllShardsSum());
-        queryRegistry.register(UPDATE_SPEC_SHARD, true, new SelectSpecShard());
-        queryRegistry.register(UPDATE_ALL_SHARDS, true, new SelectAllShards());
+        queryRegistry.register(UPDATE_SPEC_SHARD, true, new UpdateSpecShard());
+        queryRegistry.register(UPDATE_ALL_SHARDS, true, new UpdateAllShards());
 
-        Executor queryExecutor = Executors.newFixedThreadPool(config.getNumberOfWorkerThreads());
+        ExecutorService queryExecutor = Executors.newFixedThreadPool(config.getNumberOfWorkerThreads());
         queryRegistry.register(SELECT_SPEC_SHARD, false, new SelectSpecShard());
         queryRegistry.register(SELECT_SHARD, false, new SelectShard());
         queryRegistry.register(SELECT_ANY_SHARD, false, new SelectAnyShard(random));
         queryRegistry.register(SELECT_ALL_SHARDS, false, new SelectAllShardsAsync(queryExecutor));
         queryRegistry.register(SELECT_ALL_SHARDS_SUM, false, new SelectAllShardsSumAsync(queryExecutor));
-        queryRegistry.register(UPDATE_SPEC_SHARD, false, new SelectSpecShard());
-        queryRegistry.register(UPDATE_ALL_SHARDS, false, new SelectAllShardsAsync(queryExecutor));
+        queryRegistry.register(UPDATE_SPEC_SHARD, false, new UpdateSpecShard());
+        queryRegistry.register(UPDATE_ALL_SHARDS, false, new UpdateAllShardsAsync(queryExecutor));
     }
 
-    public <V> V execute(int queryType, long id, QueryClosure<V> closure) {
+    public <V> V execute(int queryType, long id, QueryClosure<V> closure) throws Exception {
         Query query = queryRegistry.get(queryType);
         List<Connection> connections = resolveShards(queryType, id);
         return query.query(closure, connections);
     }
 
-    public <V> V execute(int queryType, QueryClosure<V> closure) {
+    public <V> V execute(int queryType, QueryClosure<V> closure) throws Exception {
         return execute(queryType, INVALID_ID, closure);
     }
 

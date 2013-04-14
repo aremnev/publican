@@ -4,13 +4,13 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 public class SelectAllShardsSumAsync extends QueryAsync {
 
     private static final Logger logger = LoggerFactory.getLogger("SelectAllShardsSumAsync");
 
-    public SelectAllShardsSumAsync(Executor executor) {
+    public SelectAllShardsSumAsync(ExecutorService executor) {
         super(executor);
     }
 
@@ -21,6 +21,7 @@ public class SelectAllShardsSumAsync extends QueryAsync {
 
     @Override
     protected <U> void processResult(Object result, U threadResult) {
+        // TODO is synchronized block needed here
         ((MutableInt) result).setValue(((MutableInt) result).getValue() + (Integer) threadResult);
     }
 

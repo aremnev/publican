@@ -50,24 +50,35 @@ public class ShardResolver {
                 throw new Exception("Connection already is opened");
             }
             connection = shard.getConnection();
+            connection.open();
         }
 
         @Override
-        public void commit() {
+        public void commit() throws Exception {
             if (connection != null)
                 connection.commit();
         }
 
         @Override
-        public void rollback() {
+        public void rollback() throws Exception {
             if (connection != null)
                 connection.rollback();
         }
 
         @Override
-        public void close() {
+        public void close() throws Exception {
             if (connection != null)
                 connection.close();
+        }
+
+        @Override
+        public Object getConnection() {
+            return connection.getConnection();
+        }
+
+        @Override
+        public String toString() {
+            return connection != null ? connection.toString() : shard.toString();
         }
     }
 }

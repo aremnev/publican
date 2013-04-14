@@ -14,7 +14,7 @@ public class SelectAnyShard extends Query {
     }
 
     @Override
-    public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
+    public <U> U query(QueryClosure<U> closure, List<Connection> shards) throws Exception {
         U result = null;
         Connection connection = Util.getRandom(random, shards);
         connection.open();

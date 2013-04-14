@@ -58,6 +58,25 @@ public class JdbcShard implements Shard {
                 if (sqlConn != null)
                     sqlConn.close();
             }
+
+            @Override
+            public Object getConnection() {
+                return sqlConn;
+            }
+
+            @Override
+            public String toString() {
+                return JdbcShard.this.toString();
+            }
         };
+    }
+
+    @Override
+    public String toString() {
+        return "JdbcShard{" +
+                "id=" + id +
+                ", url='" + url + '\'' +
+                ", driver='" + driver + '\'' +
+                '}';
     }
 }

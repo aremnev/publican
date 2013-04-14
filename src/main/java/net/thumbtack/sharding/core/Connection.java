@@ -9,4 +9,6 @@ public interface Connection {
     void rollback() throws Exception;
 
     void close() throws Exception;
+
+    Object getConnection();
 }

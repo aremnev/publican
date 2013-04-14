@@ -3,7 +3,7 @@ package net.thumbtack.sharding.core;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 import java.util.Collection;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +12,7 @@ public class SelectShardAsync extends QueryAsync {
 
     private static final Logger logger = LoggerFactory.getLogger("SelectShardAsync");
 
-    public SelectShardAsync(Executor executor) {
+    public SelectShardAsync(ExecutorService executor) {
         super(executor);
     }
 
