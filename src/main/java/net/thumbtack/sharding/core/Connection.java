@@ -2,11 +2,11 @@ package net.thumbtack.sharding.core;
 
 public interface Connection {
 
-	void open();
+    void open();
 
-	void commit();
+    void commit();
 
-	void rollback();
+    void rollback();
 
-	void close();
+    void close();
 }

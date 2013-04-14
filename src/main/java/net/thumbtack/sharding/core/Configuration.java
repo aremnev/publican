@@ -2,11 +2,11 @@ package net.thumbtack.sharding.core;
 
 public interface Configuration {
 
-	long getSelectAnyRandomSeed();
+    long getSelectAnyRandomSeed();
 
-	int getNumberOfWorkerThreads();
+    int getNumberOfWorkerThreads();
 
-	Iterable<Shard> getShards();
+    Iterable<Shard> getShards();
 
-	KeyMapper getKeyMapper();
+    KeyMapper getKeyMapper();
 }

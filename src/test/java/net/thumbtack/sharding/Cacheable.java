@@ -2,9 +2,9 @@ package net.thumbtack.sharding;
 
 public interface Cacheable {
 
-	void invalidateCache();
+    void invalidateCache();
 
-	void setCacheDisabled(boolean disabled);
+    void setCacheDisabled(boolean disabled);
 
-	boolean getCacheDisabled();
+    boolean getCacheDisabled();
 }
