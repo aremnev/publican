@@ -18,10 +18,10 @@ public class H2Server {
         // start H2 server here
         org.h2.Driver.load();
         String[] params = new String[] {"-tcp", "-tcpAllowOthers"};
-        Server dbServer = Server.createTcpServer(params);
-        dbServer.start();
+        server = Server.createTcpServer(params);
+        server.start();
         logger.debug("Database server started");
-        return dbServer;
+        return server;
     }
 
     public void stop() {

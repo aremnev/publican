@@ -20,7 +20,7 @@ public class CrudTest extends JdbcTest {
             @Override
             public Boolean call(Connection connection) throws Exception {
                 java.sql.Connection sqlConn = (java.sql.Connection) connection.getConnection();
-                String sql = "INSERT INTO `test_table` (`id`,`text`) VALUES (1,'test')";
+                String sql = "INSERT INTO `common` (`id`,`text`) VALUES (1,'test')";
                 int ins = sqlConn.createStatement().executeUpdate(sql);
                 assertEquals(1, ins);
                 synchronized (inserted) {

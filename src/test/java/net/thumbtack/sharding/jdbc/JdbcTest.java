@@ -1,5 +1,6 @@
 package net.thumbtack.sharding.jdbc;
 
+import net.thumbtack.helper.Util;
 import net.thumbtack.sharding.core.*;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -72,13 +73,7 @@ public abstract class JdbcTest {
             @Override
             public Object call(net.thumbtack.sharding.core.Connection connection) throws Exception {
                 Connection sqlConn = (Connection) connection.getConnection();
-                String sql = "DROP TABLE IF EXISTS `test_table`; " +
-                        "CREATE TABLE `test_table` ( " +
-                        "  `id` bigint(20) unsigned NOT NULL, " +
-                        "  `text` varchar(255) NOT NULL, " +
-                        "  `date` TIMESTAMP NOT NULL DEFAULT '2011-12-31 23:59:59', " +
-                        "  PRIMARY KEY (`id`) " +
-                        ");";
+                String sql = Util.readResource("initialize.sql");
                 sqlConn.createStatement().execute(sql);
                 return null;
             }
