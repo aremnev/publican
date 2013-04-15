@@ -6,7 +6,7 @@ import java.util.List;
 
 public abstract class Query {
 
-    public abstract  <U> U query(QueryClosure<U> closure, List<Connection> shards) throws Exception;
+    public abstract  <U> U query(QueryClosure<U> closure, List<Connection> shards);
 
     protected static void logErrors(Logger logger, Object result, List<QueryError> errors) {
         StringBuilder sb = new StringBuilder();

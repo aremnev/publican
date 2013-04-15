@@ -46,13 +46,13 @@ public class Sharding {
         queryRegistry.register(UPDATE_ALL_SHARDS, false, new UpdateAllShardsAsync(queryExecutor));
     }
 
-    public <V> V execute(int queryType, long id, QueryClosure<V> closure) throws Exception {
+    public <V> V execute(int queryType, long id, QueryClosure<V> closure) {
         Query query = queryRegistry.get(queryType);
         List<Connection> connections = resolveShards(queryType, id);
         return query.query(closure, connections);
     }
 
-    public <V> V execute(int queryType, QueryClosure<V> closure) throws Exception {
+    public <V> V execute(int queryType, QueryClosure<V> closure) {
         return execute(queryType, INVALID_ID, closure);
     }
 

@@ -20,9 +20,18 @@ public interface Dao<T> {
     T select(long id);
 
     /**
+     * Retrieves the several objects by primary key.
+     *
+     * @param ids
+     *            Primary keys of the objects to fetch.
+     * @return The list objects, or empty list if no such objects were found.
+     */
+    List<T> select(List<Long> ids);
+
+    /**
      * Retrieve all the entities in the database (use with care).
      *
-     * @return A list of every entity in the database.
+     * @return A list of every Entity in the database.
      */
     List<T> selectAll();
 
@@ -35,6 +44,16 @@ public interface Dao<T> {
      * @return The object inserted with its primary key set.
      */
     T insert(T entity);
+
+    /**
+     * Inserts a batch of new object record into the database.
+     *
+     * @param entities
+     *            Objects to insert. Must be new and have no primary key. Its
+     *            primary key will be set during insert.
+     * @return The object inserted with its primary key set.
+     */
+    List<T> insert(List<T> entities);
 
     /**
      * Updates an object in the database.
@@ -69,5 +88,5 @@ public interface Dao<T> {
     /**
      * Deletes all objects from the database. Use with extreme care!
      */
-    Void deleteAll();
+    boolean deleteAll();
 }

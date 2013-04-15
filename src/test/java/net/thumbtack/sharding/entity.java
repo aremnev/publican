@@ -2,14 +2,14 @@ package net.thumbtack.sharding;
 
 import java.util.Date;
 
-public class CommonEntity {
+public class Entity {
     public long id;
     public String text;
     public Date date;
 
-    public CommonEntity() {}
+    public Entity() {}
 
-    public CommonEntity(long id, String text, Date date) {
+    public Entity(long id, String text, Date date) {
         this.id = id;
         this.text = text;
         this.date = date;
@@ -44,11 +44,11 @@ public class CommonEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        CommonEntity entity = (CommonEntity) o;
+        Entity Entity = (Entity) o;
 
-        return id == entity.id &&
-                !(date != null ? !date.equals(entity.date) : entity.date != null) &&
-                !(text != null ? !text.equals(entity.text) : entity.text != null);
+        return id == Entity.id &&
+                !(date != null ? !date.equals(Entity.date) : Entity.date != null) &&
+                !(text != null ? !text.equals(Entity.text) : Entity.text != null);
 
     }
 
