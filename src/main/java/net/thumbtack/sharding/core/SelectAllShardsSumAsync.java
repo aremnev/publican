@@ -1,10 +1,10 @@
 package net.thumbtack.sharding.core;
 
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class SelectAllShardsSumAsync extends QueryAsync {
 
@@ -14,17 +14,19 @@ public class SelectAllShardsSumAsync extends QueryAsync {
         super(executor);
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     @Override
     protected <U> Object createResult() {
-        return new MutableInt(0);
+        return new AtomicLong(0);
     }
 
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     @Override
-    protected <U> void processResult(Object result, U threadResult) {
-        // TODO is synchronized block needed here
-        ((MutableInt) result).setValue(((MutableInt) result).getValue() + (Integer) threadResult);
+    protected <U> void processResult(final Object result, U threadResult) {
+        ((AtomicLong) result).set(((AtomicLong) result).get() + (Integer) threadResult);
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     @Override
     protected <U> boolean checkResultFinish(Object result) {
         return false;
@@ -33,7 +35,7 @@ public class SelectAllShardsSumAsync extends QueryAsync {
     @Override
     @SuppressWarnings("unchecked")
     protected <U> U extractResultValue(Object result) {
-        return (U) ((MutableInt) result).getValue();
+        return (U) Long.valueOf(((AtomicLong) result).get());
     }
 
     @Override

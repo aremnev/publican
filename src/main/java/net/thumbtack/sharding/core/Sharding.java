@@ -38,7 +38,7 @@ public class Sharding {
 
         ExecutorService queryExecutor = Executors.newFixedThreadPool(config.getNumberOfWorkerThreads());
         queryRegistry.register(SELECT_SPEC_SHARD, false, new SelectSpecShard());
-        queryRegistry.register(SELECT_SHARD, false, new SelectShard());
+        queryRegistry.register(SELECT_SHARD, false, new SelectShardAsync(queryExecutor));
         queryRegistry.register(SELECT_ANY_SHARD, false, new SelectAnyShard(random));
         queryRegistry.register(SELECT_ALL_SHARDS, false, new SelectAllShardsAsync(queryExecutor));
         queryRegistry.register(SELECT_ALL_SHARDS_SUM, false, new SelectAllShardsSumAsync(queryExecutor));

@@ -35,6 +35,8 @@ public class ShardResolver {
         return new LazyConnection(shard);
     }
 
+    // if we have some pool of connections of the shard
+    // this class will help not to hold the connection while we don't need it
     private static class LazyConnection implements Connection {
 
         private Shard shard;

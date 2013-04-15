@@ -1,6 +1,5 @@
 package net.thumbtack.sharding.core;
 
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -8,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -25,7 +25,7 @@ public abstract class QueryAsync extends Query {
         final Lock lock = new ReentrantLock();
         final Condition condition = lock.newCondition();
         // counter of threads that already executed
-        final MutableInt threadsCount = new MutableInt(shards.size());
+        final AtomicInteger threadsCount = new AtomicInteger(shards.size());
         final Object result = this.<U>createResult();
         // all errors are accumulated here
         final List<QueryError> errors = Collections.synchronizedList(new ArrayList<QueryError>());
@@ -66,7 +66,7 @@ public abstract class QueryAsync extends Query {
                     lock.lock();
                     try {
                         processResult(result, res);
-                        threadsCount.setValue(threadsCount.getValue() - 1);
+                        threadsCount.set(threadsCount.get() - 1);
                         condition.signal();
                     } finally {
                         lock.unlock();
@@ -78,7 +78,7 @@ public abstract class QueryAsync extends Query {
 
         lock.lock();
         try {
-            while (! (this.<U>checkResultFinish(result) || threadsCount.getValue() == 0)) {
+            while (! (this.<U>checkResultFinish(result) || threadsCount.get() == 0)) {
                 condition.await();
             }
         } catch (InterruptedException e) {
@@ -87,7 +87,7 @@ public abstract class QueryAsync extends Query {
             lock.unlock();
         }
 
-        U resultValue = this.<U>extractResultValue(result);
+        U resultValue = this.extractResultValue(result);
         if (! errors.isEmpty()) {
             logErrors(errors, resultValue);
             throw new QueryException("Error of execution.", errors);
@@ -104,10 +104,12 @@ public abstract class QueryAsync extends Query {
         return false;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     protected abstract <U> Object createResult();
 
     protected abstract <U> void processResult(Object result, U threadResult);
 
+    @SuppressWarnings("UnusedDeclaration")
     protected abstract <U> boolean checkResultFinish(Object result);
 
     protected abstract <U> U extractResultValue(Object result);

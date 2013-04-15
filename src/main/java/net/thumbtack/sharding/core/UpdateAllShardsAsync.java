@@ -1,11 +1,11 @@
 package net.thumbtack.sharding.core;
 
-import org.apache.commons.lang3.mutable.MutableObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class UpdateAllShardsAsync extends QueryAsync {
 
@@ -30,17 +30,18 @@ public class UpdateAllShardsAsync extends QueryAsync {
 
     @Override
     protected <U> Object createResult() {
-        return new MutableObject<U>(null);
+        return new AtomicReference<U>(null);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     protected <U> void processResult(Object result, U threadResult) {
         if (threadResult != null) {
-            ((MutableObject<U>) result).setValue(threadResult);
+            ((AtomicReference<U>) result).set(threadResult);
         }
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     @Override
     protected <U> boolean checkResultFinish(Object result) {
         return false;
@@ -49,7 +50,7 @@ public class UpdateAllShardsAsync extends QueryAsync {
     @Override
     @SuppressWarnings("unchecked")
     protected <U> U extractResultValue(Object result) {
-        return ((MutableObject<U>) result).getValue();
+        return ((AtomicReference<U>) result).get();
     }
 
     @Override

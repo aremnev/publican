@@ -1,6 +1,7 @@
 package net.thumbtack.sharding.jdbc;
 
 import net.thumbtack.helper.Util;
+import net.thumbtack.sharding.ShardingTest;
 import net.thumbtack.sharding.core.*;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -17,9 +18,9 @@ import java.util.Properties;
 
 import static net.thumbtack.sharding.core.Sharding.*;
 
-public abstract class JdbcTest {
+public abstract class JdbcTest extends ShardingTest {
 
-    protected static final Logger logger = LoggerFactory.getLogger(JdbcTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(JdbcTest.class);
 
     private static H2Server h2Server;
     protected static Sharding sharding;

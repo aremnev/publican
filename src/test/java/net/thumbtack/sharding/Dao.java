@@ -9,7 +9,7 @@ import java.util.List;
  * @param <T>
  *            The type of object on which to operate.
  */
-public interface Dao<T> extends Cacheable {
+public interface Dao<T> {
     /**
      * Retrieves an object by primary key.
      *

@@ -1,9 +1,8 @@
 package net.thumbtack.sharding.core;
 
-import org.apache.commons.lang3.mutable.MutableObject;
-
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +17,7 @@ public class SelectShardAsync extends QueryAsync {
 
     @Override
     protected <U> Object createResult() {
-        return new MutableObject<U>(null);
+        return new AtomicReference<U>(null);
     }
 
     @Override
@@ -26,16 +25,16 @@ public class SelectShardAsync extends QueryAsync {
     protected <U> void processResult(Object result, U threadResult) {
         if (threadResult != null) {
             if (threadResult instanceof Collection<?>) {
-                U value = ((MutableObject<U>) result).getValue();
+                U value = ((AtomicReference<U>) result).get();
                 if (value != null) {
                     if (((Collection<?>) value).size() == 0) {
-                        ((MutableObject<U>) result).setValue(threadResult);
+                        ((AtomicReference<U>) result).set(threadResult);
                     }
                 } else {
-                    ((MutableObject<U>) result).setValue(threadResult);
+                    ((AtomicReference<U>) result).set(threadResult);
                 }
             } else {
-                ((MutableObject<U>) result).setValue(threadResult);
+                ((AtomicReference<U>) result).set(threadResult);
             }
         }
     }
@@ -43,7 +42,7 @@ public class SelectShardAsync extends QueryAsync {
     @Override
     @SuppressWarnings("unchecked")
     protected <U> boolean checkResultFinish(Object result) {
-        U value = ((MutableObject<U>) result).getValue();
+        U value = ((AtomicReference<U>) result).get();
         if (value != null) {
             if (value instanceof Collection<?>) {
                 return ((Collection<?>) value).size() > 0;
@@ -55,7 +54,7 @@ public class SelectShardAsync extends QueryAsync {
     @Override
     @SuppressWarnings("unchecked")
     protected <U> U extractResultValue(Object result) {
-        return ((MutableObject<U>) result).getValue();
+        return ((AtomicReference<U>) result).get();
     }
 
     @Override
