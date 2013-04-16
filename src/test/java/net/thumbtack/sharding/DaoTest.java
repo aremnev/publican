@@ -4,6 +4,7 @@ import net.thumbtack.sharding.common.Dao;
 import net.thumbtack.sharding.common.Entity;
 import net.thumbtack.sharding.common.StorageServer;
 import net.thumbtack.sharding.jdbc.CommonDao;
+import net.thumbtack.sharding.jdbc.ShardedDao;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,6 +73,7 @@ public class DaoTest extends ShardingTest {
     public void selectSeveralTest() throws Exception {
         List<Entity> toSelect = Arrays.asList(testEntities[0], testEntities[2]);
         List<Entity> selected = dao.select(Arrays.asList(101L, 103L));
+        sortById(selected);
         for (int i = 0; i < toSelect.size(); i++) {
             assertEquals(toSelect.get(i), selected.get(i));
         }
@@ -80,6 +82,7 @@ public class DaoTest extends ShardingTest {
     @Test
     public void selectAllTest() throws Exception {
         List<Entity> selected = dao.selectAll();
+        sortById(selected);
         assertEquals(3, selected.size());
         for (int i = 0; i < testEntities.length; i++) {
             assertEquals(testEntities[i], selected.get(i));
@@ -120,6 +123,16 @@ public class DaoTest extends ShardingTest {
         return random.nextInt(testEntities.length);
     }
 
+    private void sortById(List<Entity> selected) {
+        Collections.sort(selected, new Comparator<Entity>() {
+            @Override
+            public int compare(Entity e1, Entity e2) {
+                long diff = e1.id - e2.id;
+                return diff < 0 ? -1 : diff > 0 ? 1 : 0;
+            }
+        });
+    }
+
     @Override
     protected Logger logger() {
         return LoggerFactory.getLogger("test" + dao.getClass().getCanonicalName());
@@ -132,6 +145,7 @@ public class DaoTest extends ShardingTest {
 
         List<Object[]> params = new ArrayList<Object[]>();
         params.add(new Object[] {shardingSuite.jdbcServer, new CommonDao(shardingSuite.jdbcServer.sharding())});
+        params.add(new Object[] {shardingSuite.jdbcServer, new ShardedDao(shardingSuite.jdbcServer.sharding())});
         return params;
     }
 }
