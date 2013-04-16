@@ -1,7 +1,7 @@
 package net.thumbtack.sharding.jdbc;
 
-import net.thumbtack.sharding.Entity;
-import net.thumbtack.sharding.EntityDao;
+import net.thumbtack.sharding.common.Entity;
+import net.thumbtack.sharding.common.EntityDao;
 import net.thumbtack.sharding.core.Connection;
 import net.thumbtack.sharding.core.QueryClosure;
 import net.thumbtack.sharding.core.ShardingFacade;
@@ -101,7 +101,7 @@ public class CommonDao implements EntityDao {
 
     @Override
     public boolean update(final Entity entity) {
-        return sharding.updateSpec(entity.id, new QueryClosure<Boolean>() {
+        return sharding.updateAll(new QueryClosure<Boolean>() {
             @Override
             public Boolean call(Connection connection) throws Exception {
                 java.sql.Connection sqlConn = (java.sql.Connection) connection.getConnection();
@@ -120,7 +120,7 @@ public class CommonDao implements EntityDao {
 
     @Override
     public boolean delete(final long id) {
-        return sharding.updateSpec(id, new QueryClosure<Boolean>() {
+        return sharding.updateAll(new QueryClosure<Boolean>() {
             @Override
             public Boolean call(Connection connection) throws Exception {
                 java.sql.Connection sqlConn = (java.sql.Connection) connection.getConnection();

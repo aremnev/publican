@@ -1,36 +1,19 @@
 package net.thumbtack.sharding.jdbc;
 
 import net.thumbtack.helper.Util;
-import net.thumbtack.sharding.ShardingTest;
+import net.thumbtack.sharding.common.StorageServer;
 import net.thumbtack.sharding.core.*;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
-import static net.thumbtack.sharding.core.Sharding.*;
+public class JdbcStorageServer implements StorageServer {
 
-public abstract class JdbcTest extends ShardingTest {
+    private ShardingFacade sharding;
+    private H2Server h2Server;
 
-    private static final Logger logger = LoggerFactory.getLogger(JdbcTest.class);
-
-    private static H2Server h2Server;
-    protected static ShardingFacade sharding;
-
-    @BeforeClass
-    public static void startEmbeddedDbServer() throws Exception {
-        h2Server = new H2Server();
-        h2Server.start();
-        logger.debug("embedded db server started");
-
+    public JdbcStorageServer() {
         int shardsCount = 2;
         final List<Shard> shards = new ArrayList<Shard>(shardsCount);
         for (int i = 0; i < shardsCount; i++) {
@@ -60,16 +43,21 @@ public abstract class JdbcTest extends ShardingTest {
             }
         };
         sharding = new ShardingFacade(new Sharding(configuration));
+        h2Server = new H2Server();
     }
 
-    @AfterClass
-    public static void stopEmbeddedDbServer() throws Exception {
+    @Override
+    public void start() throws Exception {
+        h2Server.start();
+    }
+
+    @Override
+    public void stop() throws Exception {
         h2Server.stop();
-        logger.debug("embedded db server stopped");
     }
 
-    @Before
-    public void createScheme() throws Exception {
+    @Override
+    public void reset() throws Exception {
         sharding.updateAll(new QueryClosure<Object>() {
             @Override
             public Object call(net.thumbtack.sharding.core.Connection connection) throws Exception {
@@ -79,5 +67,10 @@ public abstract class JdbcTest extends ShardingTest {
                 return null;
             }
         });
+    }
+
+    @Override
+    public ShardingFacade sharding() {
+        return sharding;
     }
 }

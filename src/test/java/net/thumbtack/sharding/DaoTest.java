@@ -1,38 +1,56 @@
-package net.thumbtack.sharding.jdbc;
+package net.thumbtack.sharding;
 
-import net.thumbtack.sharding.Entity;
+import net.thumbtack.sharding.common.Dao;
+import net.thumbtack.sharding.common.Entity;
+import net.thumbtack.sharding.common.StorageServer;
+import net.thumbtack.sharding.jdbc.CommonDao;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-public class CommonDaoTest extends JdbcTest {
+@RunWith(Parameterized.class)
+public class DaoTest extends ShardingTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(CommonDaoTest.class);
+    private static ShardingSuite shardingSuite;
 
-    @Override
-    protected Logger logger() {
-        return logger;
+    private StorageServer server;
+    private Dao<Entity> dao;
+
+    private Entity[] testEntities;
+
+    private Random random = new Random(System.currentTimeMillis());
+
+    public DaoTest(StorageServer server, Dao<Entity> dao) {
+        this.server = server;
+        this.dao = dao;
     }
-
-    private static final Entity[] testEntities = new Entity[] {
-            new Entity(101, "text101", new Date()),
-            new Entity(102, "text102", new Date()),
-            new Entity(103, "text103", new Date()),
-    };
-
-    private static Random random = new Random(System.currentTimeMillis());
-
-    private static CommonDao dao = new CommonDao(sharding);
 
     @Before
     public void init() throws Exception {
+        server.reset();
+        testEntities = new Entity[] {
+                new Entity(101, "text101", new Date()),
+                new Entity(102, "text102", new Date()),
+                new Entity(103, "text103", new Date()),
+        };
         dao.insert(Arrays.asList(testEntities));
-        logger.debug("inserted initial entities");
+        logger().debug("inserted initial entities");
+    }
+
+    @AfterClass
+    public static void cleanup() throws Exception {
+        if (shardingSuite != null)
+            shardingSuite.stop();
     }
 
     @Test
@@ -101,5 +119,19 @@ public class CommonDaoTest extends JdbcTest {
     private int randomEntity() {
         return random.nextInt(testEntities.length);
     }
-}
 
+    @Override
+    protected Logger logger() {
+        return LoggerFactory.getLogger("test" + dao.getClass().getCanonicalName());
+    }
+
+    @Parameterized.Parameters
+    public static Collection<Object[]> data() throws Exception {
+        shardingSuite = new ShardingSuite();
+        shardingSuite.start();
+
+        List<Object[]> params = new ArrayList<Object[]>();
+        params.add(new Object[] {shardingSuite.jdbcServer, new CommonDao(shardingSuite.jdbcServer.sharding())});
+        return params;
+    }
+}
