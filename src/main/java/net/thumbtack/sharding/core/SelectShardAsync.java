@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SelectShardAsync extends QueryAsync {
+class SelectShardAsync extends QueryAsync {
 
     private static final Logger logger = LoggerFactory.getLogger("SelectShardAsync");
 

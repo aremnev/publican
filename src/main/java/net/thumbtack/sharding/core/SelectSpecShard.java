@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class SelectSpecShard extends Query {
+class SelectSpecShard extends Query {
 
     private static final Logger logger = LoggerFactory.getLogger(SelectSpecShard.class);
 

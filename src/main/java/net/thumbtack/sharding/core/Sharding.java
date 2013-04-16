@@ -48,7 +48,7 @@ public class Sharding {
 
     public <V> V execute(int queryType, long id, QueryClosure<V> closure) {
         Query query = queryRegistry.get(queryType);
-        List<Connection> connections = resolveShards(queryType, id);
+        List<Connection> connections = resolveShards(id);
         return query.query(closure, connections);
     }
 
@@ -56,7 +56,7 @@ public class Sharding {
         return execute(queryType, INVALID_ID, closure);
     }
 
-    private List<Connection> resolveShards(int queryType, long id) {
+    private List<Connection> resolveShards(long id) {
         if (id == INVALID_ID) {
             return shardResolver.resolveAll();
         } else {

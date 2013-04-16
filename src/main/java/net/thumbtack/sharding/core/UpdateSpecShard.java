@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class UpdateSpecShard extends Query {
+class UpdateSpecShard extends Query {
 
     private static final Logger logger = LoggerFactory.getLogger(UpdateSpecShard.class);
 

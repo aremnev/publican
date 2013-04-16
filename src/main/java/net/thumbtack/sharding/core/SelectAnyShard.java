@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Random;
 
-public class SelectAnyShard extends Query {
+class SelectAnyShard extends Query {
 
     private static final Logger logger = LoggerFactory.getLogger(SelectAnyShard.class);
 

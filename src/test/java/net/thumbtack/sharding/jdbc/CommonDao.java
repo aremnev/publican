@@ -1,11 +1,11 @@
 package net.thumbtack.sharding.jdbc;
 
 import net.thumbtack.sharding.Entity;
-import net.thumbtack.sharding.Dao;
 import net.thumbtack.sharding.EntityDao;
 import net.thumbtack.sharding.core.Connection;
 import net.thumbtack.sharding.core.QueryClosure;
 import net.thumbtack.sharding.core.Sharding;
+import net.thumbtack.sharding.core.ShardingFacade;
 
 import java.sql.ResultSet;
 import java.sql.Timestamp;
@@ -16,15 +16,15 @@ import static net.thumbtack.sharding.core.Sharding.*;
 
 public class CommonDao implements EntityDao {
 
-    private Sharding sharding;
+    private ShardingFacade sharding;
 
-    public CommonDao(Sharding sharding) {
+    public CommonDao(ShardingFacade sharding) {
         this.sharding = sharding;
     }
 
     @Override
     public Entity select(long id) {
-        return sharding.execute(SELECT_ANY_SHARD, selectByIdClosure(id));
+        return sharding.selectAny(selectByIdClosure(id));
     }
 
     @Override
@@ -34,18 +34,18 @@ public class CommonDao implements EntityDao {
 
     @Override
     public List<Entity> selectAll() {
-        return sharding.execute(SELECT_ANY_SHARD, selectAllClosure());
+        return sharding.selectAny(selectAllClosure());
     }
 
     @Override
     public Entity insert(Entity Entity) {
-        sharding.execute(UPDATE_ALL_SHARDS, insertClosure(Entity));
+        sharding.updateAll(insertClosure(Entity));
         return Entity;
     }
 
     @Override
     public List<Entity> insert(List<Entity> entities) {
-        sharding.execute(UPDATE_ALL_SHARDS, insertClosure(entities));
+        sharding.updateAll(insertClosure(entities));
         return entities;
     }
 

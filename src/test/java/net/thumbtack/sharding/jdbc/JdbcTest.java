@@ -23,7 +23,7 @@ public abstract class JdbcTest extends ShardingTest {
     private static final Logger logger = LoggerFactory.getLogger(JdbcTest.class);
 
     private static H2Server h2Server;
-    protected static Sharding sharding;
+    protected static ShardingFacade sharding;
 
     @BeforeClass
     public static void startEmbeddedDbServer() throws Exception {
@@ -59,7 +59,7 @@ public abstract class JdbcTest extends ShardingTest {
                 return keyMapper;
             }
         };
-        sharding = new Sharding(configuration);
+        sharding = new ShardingFacade(new Sharding(configuration));
     }
 
     @AfterClass
@@ -70,7 +70,7 @@ public abstract class JdbcTest extends ShardingTest {
 
     @Before
     public void createScheme() throws Exception {
-        sharding.execute(UPDATE_ALL_SHARDS, new QueryClosure<Object>() {
+        sharding.updateAll(new QueryClosure<Object>() {
             @Override
             public Object call(net.thumbtack.sharding.core.Connection connection) throws Exception {
                 Connection sqlConn = (Connection) connection.getConnection();
