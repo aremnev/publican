@@ -21,6 +21,8 @@ class SelectAnyShard extends Query {
     public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
         U result = null;
         Connection connection = Util.getRandom(random, shards);
+        if (logger.isDebugEnabled())
+            logger.debug(connection.toString());
         try {
             connection.open();
             try {

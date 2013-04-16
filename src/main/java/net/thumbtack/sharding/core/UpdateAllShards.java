@@ -15,6 +15,8 @@ class UpdateAllShards extends Query {
         int errors = 0;
         try {
             for (Connection connection : shards) {
+                if (logger.isDebugEnabled())
+                    logger.debug(connection.toString());
                 try {
                     connection.open();
                     try {

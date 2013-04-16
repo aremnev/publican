@@ -13,6 +13,8 @@ class SelectShard extends Query {
     public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
         U result = null;
         for (Connection connection : shards) {
+            if (logger.isDebugEnabled())
+                logger.debug(connection.toString());
             try {
                 connection.open();
                 try {

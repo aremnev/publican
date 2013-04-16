@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ShardResolver {
+class ShardResolver {
 
     private Map<Long, Shard> shards = new HashMap<Long, Shard>(0);
     private KeyMapper keyMapper;

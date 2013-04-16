@@ -34,11 +34,11 @@ public abstract class QueryAsync extends Query {
         // threads are synchronized by lock
         // when thread has done it send condition.signal();
         for (final Connection connection : shards) {
-            // we can't do it too fast since db (or MyBatis) returns null by unclear reason
-            // so send thread to sleep 1 ms
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException ignored) {}
+//            // we can't do it too fast since db (or MyBatis) returns null by unclear reason
+//            // so send thread to sleep 1 ms
+//            try {
+//                Thread.sleep(1);
+//            } catch (InterruptedException ignored) {}
 
 
             final Thread currentThread = Thread.currentThread();
@@ -46,7 +46,9 @@ public abstract class QueryAsync extends Query {
             executor.submit(new Callable<Object>() {
                 @Override
                 public Object call() throws Exception {
-                    logger().debug(connection.toString());
+                    if (logger().isDebugEnabled())
+                        logger().debug(connection.toString());
+
                     connection.open();
                     U res = null;
                     try {
