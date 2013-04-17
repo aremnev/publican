@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class SelectAllShardsSum extends Query {
+public class SelectAllShardsSum implements Query {
 
     private static final Logger logger = LoggerFactory.getLogger(SelectAllShardsSum.class);
 

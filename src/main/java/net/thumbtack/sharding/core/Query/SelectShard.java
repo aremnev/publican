@@ -6,10 +6,14 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.List;
 
-public class SelectShard extends Query {
+/**
+ * Select from undefined shard. All shards are examined synchronously.
+ */
+public class SelectShard implements Query {
 
     private static final Logger logger = LoggerFactory.getLogger(SelectShard.class);
 
+    @Override
     public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
         U result = null;
         for (Connection connection : shards) {

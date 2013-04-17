@@ -5,7 +5,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class UpdateAllShards extends Query {
+/**
+ * Update on all shards synchronously.
+ */
+public class UpdateAllShards implements Query {
 
     private static final Logger logger = LoggerFactory.getLogger(UpdateAllShards.class);
 

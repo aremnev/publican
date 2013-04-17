@@ -7,10 +7,17 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Select from undefined shard. All shards are examined asynchronously.
+ */
 public class SelectShardAsync extends QueryAsync {
 
     private static final Logger logger = LoggerFactory.getLogger("SelectShardAsync");
 
+    /**
+     * Constructor.
+     * @param executor Service to run asynchronous jobs
+     */
     public SelectShardAsync(ExecutorService executor) {
         super(executor);
     }

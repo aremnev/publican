@@ -7,10 +7,17 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Update on all shards asynchronously.
+ */
 public class UpdateAllShardsAsync extends QueryAsync {
 
     private static final Logger logger = LoggerFactory.getLogger("UpdateAllShardsAsync");
 
+    /**
+     * Constructor.
+     * @param executor Service to run asynchronous jobs
+     */
     public UpdateAllShardsAsync(ExecutorService executor) {
         super(executor);
     }

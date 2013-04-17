@@ -12,10 +12,17 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public abstract class QueryAsync extends Query {
+/**
+ * The base class for asynchronous queries.
+ */
+public abstract class QueryAsync implements Query {
 
     private ExecutorService executor;
 
+    /**
+     * Constructor.
+     * @param executor Service to run asynchronous jobs
+     */
     public QueryAsync(ExecutorService executor) {
         this.executor = executor;
     }
@@ -92,29 +99,97 @@ public abstract class QueryAsync extends Query {
         U resultValue = this.extractResultValue(result);
         if (! errors.isEmpty()) {
             logErrors(errors, resultValue);
+            // TODO this throw should be configurable. We need to have opportunity to get result even if some shards failed
             throw new QueryException("Error of execution.", errors);
         }
 
         return resultValue;
     }
 
+    /**
+     * Invokes when some errors occurred during query execution. Can be used to log some additional information.
+     * @param errors The errors which occurred.
+     * @param resultValue The result, null if there is no result.
+     * @param <U> The result type.
+     */
     protected <U> void logErrors(List<QueryError> errors, U resultValue) {
         logErrors(logger(), resultValue, errors);
     }
 
+    /**
+     * Do connection.commit() after query execution or not.
+     * @return true if positive
+     */
     protected boolean doCommit() {
         return false;
     }
 
+    /**
+     * Creates some container for result of the query.
+     * This container is common for all threads and for each thread will be invoked
+     * {@link #processResult(Object, Object)} to process thread's result.
+     * Also, this container should be tread-safe.
+     * @param <U> The type of the result.
+     * @return The container for query result.
+     */
     @SuppressWarnings("UnusedDeclaration")
     protected abstract <U> Object createResult();
 
+    /**
+     * Processes the part of query result which returned from one thread.
+     * @param result The container which contains full query result.
+     * @param threadResult The result from one thread.
+     * @param <U> The type of the result.
+     */
     protected abstract <U> void processResult(Object result, U threadResult);
 
+    /**
+     * Checks should we finish with current result or not.
+     * @param result The current result.
+     * @param <U> The type of the result.
+     * @return True if finish false otherwise.
+     */
     @SuppressWarnings("UnusedDeclaration")
     protected abstract <U> boolean checkResultFinish(Object result);
 
+    /**
+     * Extract the result of query from container which was created with {@link #createResult()}.
+     * @param result The container with result.
+     * @param <U> The type of the result.
+     * @return The result of the query.
+     */
     protected abstract <U> U extractResultValue(Object result);
 
+    /**
+     * Gets logger from implementation to log.
+     * @return The logger
+     */
     protected abstract Logger logger();
+
+    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+    private static void logErrors(Logger logger, Object result, List<QueryError> errors) {
+        StringBuilder sb = new StringBuilder();
+        for (QueryError error : errors) {
+            sb.append("On shard #").append(error.getShard()).append(":\n");
+            if (error.getError() != null) {
+                if (error.getError().getMessage() != null) {
+                    sb.append(error.getError().getMessage()).append("\n");
+                }
+                sb.append(printStackTrace(error.getError().getStackTrace()));
+            }
+            sb.append("Parent stack:\n").append(printStackTrace(error.getParentStackTrace()));
+        }
+        logger.error("Query was finished with result {} end errors\n{}", result, sb.toString());
+    }
+
+    private static String printStackTrace(StackTraceElement[] stackTrace) {
+        if (stackTrace != null) {
+            StringBuilder sb = new StringBuilder();
+            for (StackTraceElement trace : stackTrace)
+                sb.append("\tat ").append(trace).append("\n");
+
+            return sb.toString();
+        }
+        return "";
+    }
 }

@@ -14,7 +14,7 @@ public class Sharding {
     public static final int SELECT_SPEC_SHARD = 1;          // select from specific shard
     public static final int SELECT_SHARD = 2;               // select from undefined shard
     public static final int SELECT_ANY_SHARD = 3;           // select from any shard
-    public static final int SELECT_ALL_SHARDS = 4;          // select from all shards with results union to list
+    public static final int SELECT_ALL_SHARDS = 4;          // select from all shards with union of results to list
     public static final int SELECT_ALL_SHARDS_SUM = 5;      // select from all shards with summation of results to int
     public static final int UPDATE_SPEC_SHARD = 6;          // update on specific shard
     public static final int UPDATE_ALL_SHARDS = 7;          // update on all shards

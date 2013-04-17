@@ -7,12 +7,19 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Random;
 
-public class SelectAnyShard extends Query {
+/**
+ * Select from any shard.
+ */
+public class SelectAnyShard implements Query {
 
     private static final Logger logger = LoggerFactory.getLogger(SelectAnyShard.class);
 
     private Random random;
 
+    /**
+     * Constructor.
+     * @param random The random object to select random shard.
+     */
     public SelectAnyShard(Random random) {
         this.random = random;
     }

@@ -6,10 +6,17 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Select from all shards asynchronously with union of results to list.
+ */
 public class SelectAllShardsSumAsync extends QueryAsync {
 
     private static final Logger logger = LoggerFactory.getLogger("SelectAllShardsSumAsync");
 
+    /**
+     * Constructor.
+     * @param executor Service to run asynchronous jobs
+     */
     public SelectAllShardsSumAsync(ExecutorService executor) {
         super(executor);
     }
