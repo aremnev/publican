@@ -3,6 +3,7 @@ package net.thumbtack.sharding.jdbc;
 import net.thumbtack.helper.Util;
 import net.thumbtack.sharding.common.StorageServer;
 import net.thumbtack.sharding.core.*;
+import net.thumbtack.sharding.core.query.QueryClosure;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -60,8 +61,8 @@ public class JdbcStorageServer implements StorageServer {
     public void reset() throws Exception {
         sharding.updateAll(new QueryClosure<Object>() {
             @Override
-            public Object call(net.thumbtack.sharding.core.Connection connection) throws Exception {
-                Connection sqlConn = (Connection) connection.getConnection();
+            public Object call(net.thumbtack.sharding.core.query.Connection connection) throws Exception {
+                Connection sqlConn = ((JdbcConnection) connection).getConnection();
                 String sql = Util.readResource("initialize.sql");
                 sqlConn.createStatement().execute(sql);
                 return null;

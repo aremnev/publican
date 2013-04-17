@@ -1,13 +1,15 @@
 package net.thumbtack.sharding.core;
 
+import net.thumbtack.helper.NamedThreadFactory;
+import net.thumbtack.sharding.core.query.*;
+
 import java.util.*;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Sharding {
 
-    private final long INVALID_ID = Long.MIN_VALUE;
+    private static final long INVALID_ID = Long.MIN_VALUE;
 
     public static final int SELECT_SPEC_SHARD = 1;          // select from specific shard
     public static final int SELECT_SHARD = 2;               // select from undefined shard
@@ -36,7 +38,7 @@ public class Sharding {
         queryRegistry.register(UPDATE_SPEC_SHARD, true, new UpdateSpecShard());
         queryRegistry.register(UPDATE_ALL_SHARDS, true, new UpdateAllShards());
 
-        ExecutorService queryExecutor = Executors.newFixedThreadPool(config.getNumberOfWorkerThreads());
+        ExecutorService queryExecutor = Executors.newFixedThreadPool(config.getNumberOfWorkerThreads(), new NamedThreadFactory("query"));
         queryRegistry.register(SELECT_SPEC_SHARD, false, new SelectSpecShard());
         queryRegistry.register(SELECT_SHARD, false, new SelectShardAsync(queryExecutor));
         queryRegistry.register(SELECT_ANY_SHARD, false, new SelectAnyShard(random));

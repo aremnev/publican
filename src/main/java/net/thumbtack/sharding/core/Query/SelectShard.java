@@ -1,4 +1,4 @@
-package net.thumbtack.sharding.core;
+package net.thumbtack.sharding.core.query;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.List;
 
-class SelectShard extends Query {
+public class SelectShard extends Query {
 
     private static final Logger logger = LoggerFactory.getLogger(SelectShard.class);
 

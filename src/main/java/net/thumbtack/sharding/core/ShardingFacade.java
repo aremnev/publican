@@ -1,5 +1,7 @@
 package net.thumbtack.sharding.core;
 
+import net.thumbtack.sharding.core.query.QueryClosure;
+
 import java.util.List;
 
 public class ShardingFacade {

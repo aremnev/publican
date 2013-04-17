@@ -1,27 +1,28 @@
-package net.thumbtack.sharding.core;
+package net.thumbtack.sharding.core.query;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedList;
 import java.util.List;
 
-class SelectAllShardsSum extends Query {
+public class SelectAllShards extends Query {
 
-    private static final Logger logger = LoggerFactory.getLogger(SelectAllShardsSum.class);
+    private static final Logger logger = LoggerFactory.getLogger(SelectAllShards.class);
 
     @Override
     @SuppressWarnings("unchecked")
     public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
-        Integer result = 0;
-        for (final Connection connection : shards) {
+        List<Object> result = new LinkedList<Object>();
+        for (Connection connection : shards) {
             if (logger.isDebugEnabled())
                 logger.debug(connection.toString());
             try {
                 connection.open();
                 try {
-                    Integer res = (Integer) closure.call(connection);
-                    if (res != null) {
-                        result += res;
+                    U elements = closure.call(connection);
+                    if (elements != null) {
+                        result.addAll((List) elements);
                     }
                 } finally {
                     connection.close();

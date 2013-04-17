@@ -2,8 +2,8 @@ package net.thumbtack.sharding.jdbc;
 
 import net.thumbtack.sharding.common.Entity;
 import net.thumbtack.sharding.common.EntityDao;
-import net.thumbtack.sharding.core.Connection;
-import net.thumbtack.sharding.core.QueryClosure;
+import net.thumbtack.sharding.core.query.Connection;
+import net.thumbtack.sharding.core.query.QueryClosure;
 import net.thumbtack.sharding.core.ShardingFacade;
 
 import java.sql.ResultSet;
@@ -25,7 +25,7 @@ public class ShardedDao implements EntityDao {
         return sharding.selectSpec(id, new QueryClosure<Entity>() {
             @Override
             public Entity call(Connection connection) throws Exception {
-                java.sql.Connection sqlConn = (java.sql.Connection) connection.getConnection();
+                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
                 String sql = "SELECT * FROM `common` WHERE `id` = " + id + ";";
                 ResultSet resultSet = sqlConn.prepareStatement(sql).executeQuery();
                 return resultSet.next() ? parseEntity(resultSet) : null;
@@ -38,7 +38,7 @@ public class ShardedDao implements EntityDao {
         return sharding.selectAll(new QueryClosure<List<Entity>>() {
             @Override
             public List<Entity> call(Connection connection) throws Exception {
-                java.sql.Connection sqlConn = (java.sql.Connection) connection.getConnection();
+                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
                 StringBuilder idsSrt = new StringBuilder();
                 for (long id : ids) {
                     idsSrt.append(id).append(",");
@@ -56,7 +56,7 @@ public class ShardedDao implements EntityDao {
         return sharding.selectAll(new QueryClosure<List<Entity>>() {
             @Override
             public List<Entity> call(Connection connection) throws Exception {
-                java.sql.Connection sqlConn = (java.sql.Connection) connection.getConnection();
+                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
                 String sql = "SELECT * FROM `common`;";
                 ResultSet resultSet = sqlConn.prepareStatement(sql).executeQuery();
                 return parseEntities(resultSet);
@@ -69,7 +69,7 @@ public class ShardedDao implements EntityDao {
         sharding.updateSpec(entity.id, new QueryClosure<Object>() {
             @Override
             public Object call(Connection connection) throws Exception {
-                java.sql.Connection sqlConn = (java.sql.Connection) connection.getConnection();
+                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
                 String sql = insertStr(entity);
                 int ins = sqlConn.createStatement().executeUpdate(sql);
                 return ins > 0;
@@ -91,7 +91,7 @@ public class ShardedDao implements EntityDao {
         return sharding.updateSpec(entity.id, new QueryClosure<Boolean>() {
             @Override
             public Boolean call(Connection connection) throws Exception {
-                java.sql.Connection sqlConn = (java.sql.Connection) connection.getConnection();
+                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
                 Timestamp time  = new Timestamp(entity.date.getTime());
                 String sql = "UPDATE `common` SET `text` = '"+ entity.text +"', `date` = '"+ time +"' WHERE `id` = "+ entity.id;
                 int upd = sqlConn.prepareStatement(sql).executeUpdate();
@@ -110,7 +110,7 @@ public class ShardedDao implements EntityDao {
         return sharding.updateSpec(id, new QueryClosure<Boolean>() {
             @Override
             public Boolean call(Connection connection) throws Exception {
-                java.sql.Connection sqlConn = (java.sql.Connection) connection.getConnection();
+                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
                 String sql = "DELETE FROM `common` WHERE `id` = "+ id;
                 int upd = sqlConn.prepareStatement(sql).executeUpdate();
                 return upd > 0;
@@ -123,7 +123,7 @@ public class ShardedDao implements EntityDao {
         return sharding.updateAll(new QueryClosure<Boolean>() {
             @Override
             public Boolean call(Connection connection) throws Exception {
-                java.sql.Connection sqlConn = (java.sql.Connection) connection.getConnection();
+                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
                 String sql = "DELETE FROM `common`";
                 int upd = sqlConn.prepareStatement(sql).executeUpdate();
                 return upd > 0;

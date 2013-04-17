@@ -1,4 +1,4 @@
-package net.thumbtack.sharding.core;
+package net.thumbtack.sharding.core.query;
 
 import java.util.HashMap;
 import java.util.Map;

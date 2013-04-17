@@ -1,26 +1,19 @@
-package net.thumbtack.sharding.core;
+package net.thumbtack.sharding.core.query;
 
-import net.thumbtack.helper.Util;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Random;
 
-class SelectAnyShard extends Query {
+public class SelectSpecShard extends Query {
 
-    private static final Logger logger = LoggerFactory.getLogger(SelectAnyShard.class);
-
-    private Random random;
-
-    public SelectAnyShard(Random random) {
-        this.random = random;
-    }
+    private static final Logger logger = LoggerFactory.getLogger(SelectSpecShard.class);
 
     @Override
     public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
         U result = null;
-        Connection connection = Util.getRandom(random, shards);
+        Connection connection = shards.get(0);
         if (logger.isDebugEnabled())
             logger.debug(connection.toString());
         try {

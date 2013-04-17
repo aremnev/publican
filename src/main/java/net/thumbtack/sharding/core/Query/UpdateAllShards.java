@@ -1,11 +1,11 @@
-package net.thumbtack.sharding.core;
+package net.thumbtack.sharding.core.query;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-class UpdateAllShards extends Query {
+public class UpdateAllShards extends Query {
 
     private static final Logger logger = LoggerFactory.getLogger(UpdateAllShards.class);
 

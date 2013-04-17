@@ -1,4 +1,4 @@
-package net.thumbtack.sharding.core;
+package net.thumbtack.sharding.core.query;
 
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class SelectShardAsync extends QueryAsync {
+public class SelectShardAsync extends QueryAsync {
 
     private static final Logger logger = LoggerFactory.getLogger("SelectShardAsync");
 

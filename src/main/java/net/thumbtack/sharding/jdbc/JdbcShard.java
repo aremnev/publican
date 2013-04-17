@@ -1,6 +1,6 @@
 package net.thumbtack.sharding.jdbc;
 
-import net.thumbtack.sharding.core.Connection;
+import net.thumbtack.sharding.core.query.Connection;
 import net.thumbtack.sharding.core.Shard;
 
 import java.sql.DriverManager;
@@ -27,48 +27,8 @@ public class JdbcShard implements Shard {
     }
 
     @Override
-    public Connection getConnection() throws Exception {
-        return new Connection() {
-
-            private java.sql.Connection sqlConn;
-
-            @Override
-            public void open() throws Exception {
-                if (sqlConn != null) {
-                    throw new Exception("Connection already is opened");
-                }
-                Class.forName(driver);
-                sqlConn = DriverManager.getConnection(url, user, password);
-            }
-
-            @Override
-            public void commit() throws Exception {
-                if (sqlConn != null)
-                    sqlConn.commit();
-            }
-
-            @Override
-            public void rollback() throws Exception {
-                if (sqlConn != null)
-                    sqlConn.rollback();
-            }
-
-            @Override
-            public void close() throws Exception {
-                if (sqlConn != null)
-                    sqlConn.close();
-            }
-
-            @Override
-            public Object getConnection() {
-                return sqlConn;
-            }
-
-            @Override
-            public String toString() {
-                return JdbcShard.this.toString();
-            }
-        };
+    public Connection getConnection() {
+        return new JdbcConnection(driver, url, user, password);
     }
 
     @Override
