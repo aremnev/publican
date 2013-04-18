@@ -4,7 +4,7 @@ import net.thumbtack.sharding.common.Entity;
 import net.thumbtack.sharding.common.EntityDao;
 import net.thumbtack.sharding.core.query.Connection;
 import net.thumbtack.sharding.core.query.QueryClosure;
-import net.thumbtack.sharding.core.ShardingFacade;
+import net.thumbtack.sharding.ShardingFacade;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

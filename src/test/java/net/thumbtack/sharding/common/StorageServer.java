@@ -1,6 +1,6 @@
 package net.thumbtack.sharding.common;
 
-import net.thumbtack.sharding.core.ShardingFacade;
+import net.thumbtack.sharding.ShardingFacade;
 
 public interface StorageServer {
 

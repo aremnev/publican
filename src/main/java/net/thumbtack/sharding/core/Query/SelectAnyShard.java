@@ -14,15 +14,7 @@ public class SelectAnyShard implements Query {
 
     private static final Logger logger = LoggerFactory.getLogger(SelectAnyShard.class);
 
-    private Random random;
-
-    /**
-     * Constructor.
-     * @param random The random object to select random shard.
-     */
-    public SelectAnyShard(Random random) {
-        this.random = random;
-    }
+    private Random random = new Random(System.currentTimeMillis());
 
     @Override
     public <U> U query(QueryClosure<U> closure, List<Connection> shards) {

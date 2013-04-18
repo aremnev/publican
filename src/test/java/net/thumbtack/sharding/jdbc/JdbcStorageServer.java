@@ -1,13 +1,16 @@
 package net.thumbtack.sharding.jdbc;
 
 import net.thumbtack.helper.Util;
+import net.thumbtack.sharding.ShardingFacade;
 import net.thumbtack.sharding.common.StorageServer;
 import net.thumbtack.sharding.core.*;
 import net.thumbtack.sharding.core.query.QueryClosure;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class JdbcStorageServer implements StorageServer {
 
@@ -23,14 +26,14 @@ public class JdbcStorageServer implements StorageServer {
         }
         final KeyMapper keyMapper = new ModuloKeyMapper(shardsCount);
         Configuration configuration = new Configuration() {
-            @Override
-            public long getSelectAnyRandomSeed() {
-                return 4;
-            }
 
             @Override
-            public int getNumberOfWorkerThreads() {
-                return 2;
+            public QueryRegistry getQueryRegistry() {
+                Properties props = new Properties();
+                try {
+                    props.load(Util.getResourceAsReader("query.properties"));
+                } catch (IOException ignored) {}
+                return new QueryRegistry(props);
             }
 
             @Override

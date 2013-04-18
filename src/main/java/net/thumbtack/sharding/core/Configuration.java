@@ -2,9 +2,7 @@ package net.thumbtack.sharding.core;
 
 public interface Configuration {
 
-    long getSelectAnyRandomSeed();
-
-    int getNumberOfWorkerThreads();
+    QueryRegistry getQueryRegistry();
 
     Iterable<Shard> getShards();
 
