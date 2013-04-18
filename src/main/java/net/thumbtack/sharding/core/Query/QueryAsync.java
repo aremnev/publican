@@ -53,8 +53,9 @@ public abstract class QueryAsync implements Query {
             executor.submit(new Callable<Object>() {
                 @Override
                 public Object call() throws Exception {
-                    if (logger().isDebugEnabled())
+                    if (logger().isDebugEnabled()) {
                         logger().debug(connection.toString());
+                    }
 
                     connection.open();
                     U res = null;
@@ -185,8 +186,9 @@ public abstract class QueryAsync implements Query {
     private static String printStackTrace(StackTraceElement[] stackTrace) {
         if (stackTrace != null) {
             StringBuilder sb = new StringBuilder();
-            for (StackTraceElement trace : stackTrace)
+            for (StackTraceElement trace : stackTrace) {
                 sb.append("\tat ").append(trace).append("\n");
+            }
 
             return sb.toString();
         }

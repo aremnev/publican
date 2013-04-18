@@ -16,8 +16,9 @@ public class UpdateSpecShard implements Query {
     public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
         U result = null;
         Connection connection = shards.get(0);
-        if (logger.isDebugEnabled())
+        if (logger.isDebugEnabled()) {
             logger.debug(connection.toString());
+        }
         try {
             connection.open();
             try {

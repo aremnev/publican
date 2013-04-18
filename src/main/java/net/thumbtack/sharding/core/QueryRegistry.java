@@ -7,21 +7,22 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.util.*;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * The query registry. It is used for mapping queryId to query.
+ */
 public class QueryRegistry {
 
     private static final Logger logger = LoggerFactory.getLogger(QueryRegistry.class);
 
-    private static final String WORK_THREADS = "workThreads";
-    private static final String QUERY = "query.";
-    private static final String CLASS = ".class";
-    private static final String SYNCHRONOUS = ".synchronous";
-
     private Map<Long, Query> registry = new HashMap<Long, Query>();
 
+    /**
+     * Constructor.
+     * @param config The general config.
+     */
     @SuppressWarnings("unchecked")
     public QueryRegistry (ShardingConfig config) {
         ExecutorService queryExecutor = null;
@@ -45,11 +46,21 @@ public class QueryRegistry {
         }
     }
 
-    public void register(long queryType, Query query) {
-        registry.put(queryType, query);
+    /**
+     * Registers the new query.
+     * @param queryId The query id.
+     * @param query The query.
+     */
+    public void register(long queryId, Query query) {
+        registry.put(queryId, query);
     }
 
-    public Query get(long queryType) {
-        return registry.get(queryType);
+    /**
+     * Get the query by id.
+     * @param queryId The query id.
+     * @return The query.
+     */
+    public Query get(long queryId) {
+        return registry.get(queryId);
     }
 }

@@ -4,6 +4,9 @@ import net.thumbtack.sharding.core.query.Query;
 
 import java.util.*;
 
+/**
+ * Query configuration. It is used by {@link QueryRegistry} to register query.
+ */
 public class QueryConfig {
 
     private static final String QUERY = "query.";
@@ -14,6 +17,12 @@ public class QueryConfig {
     private Class<Query> clazz;
     private boolean isSynchronous;
 
+    /**
+     * Builds list of query configurations from properties.
+     * @param props The properties.
+     * @return The list of query configurations.
+     * @throws ClassNotFoundException if class for some query not found.
+     */
     @SuppressWarnings("unchecked")
     public static List<QueryConfig> fromProperties(Properties props) throws ClassNotFoundException {
         Set<Long> queryIds = new HashSet<Long>();
@@ -34,34 +43,67 @@ public class QueryConfig {
         return result;
     }
 
+    /**
+     * Default constructor.
+     */
     public QueryConfig() {}
 
+    /**
+     * Constructor.
+     * @param id The query id.
+     * @param clazz The query class.
+     * @param synchronous Is the query synchronous.
+     */
     public QueryConfig(long id, Class<Query> clazz, boolean synchronous) {
         this.id = id;
         this.clazz = clazz;
         isSynchronous = synchronous;
     }
 
+    /**
+     * Get the query id.
+     * @return The query id.
+     */
     public long getId() {
         return id;
     }
 
+    /**
+     * Set the query id.
+     * @param id The query id.
+     */
     public void setId(long id) {
         this.id = id;
     }
 
+    /**
+     * Get the query class.
+     * @return The query class.
+     */
     public Class<Query> getClazz() {
         return clazz;
     }
 
+    /**
+     * Set the query class.
+     * @param clazz The query class.
+     */
     public void setClazz(Class<Query> clazz) {
         this.clazz = clazz;
     }
 
+    /**
+     * Is the query synchronous.
+     * @return True if synchronous false otherwise.
+     */
     public boolean isSynchronous() {
         return isSynchronous;
     }
 
+    /**
+     * Set the query synchronicity.
+     * @param synchronous True if synchronous false otherwise.
+     */
     public void setSynchronous(boolean synchronous) {
         isSynchronous = synchronous;
     }

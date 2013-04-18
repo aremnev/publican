@@ -5,6 +5,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+/**
+ * Select from all shards synchronously with union of results to list.
+ */
 public class SelectAllShardsSum implements Query {
 
     private static final Logger logger = LoggerFactory.getLogger(SelectAllShardsSum.class);
@@ -14,8 +17,9 @@ public class SelectAllShardsSum implements Query {
     public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
         Integer result = 0;
         for (final Connection connection : shards) {
-            if (logger.isDebugEnabled())
+            if (logger.isDebugEnabled()) {
                 logger.debug(connection.toString());
+            }
             try {
                 connection.open();
                 try {

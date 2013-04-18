@@ -4,6 +4,9 @@ import net.thumbtack.sharding.core.query.*;
 
 import java.util.*;
 
+/**
+ * The main entry point into the library. It provides the interface to execution of queries.
+ */
 public class Sharding {
 
     private static final long INVALID_ID = Long.MIN_VALUE;
@@ -12,6 +15,10 @@ public class Sharding {
 
     private QueryRegistry queryRegistry;
 
+    /**
+     * Constructor.
+     * @param config The general config.
+     */
     public Sharding(ShardingConfig config) {
         List<? extends ShardConfig> shardConfigs = config.getShardConfigs();
         ShardFactory shardFactory = config.getShardFactory();
@@ -23,14 +30,29 @@ public class Sharding {
         queryRegistry = new QueryRegistry(config);
     }
 
-    public <V> V execute(int queryType, long id, QueryClosure<V> closure) {
-        Query query = queryRegistry.get(queryType);
+    /**
+     * Executes the query on the shard which is resolved by id.
+     * @param queryId The query id.
+     * @param id The id to resolve shard.
+     * @param closure The object that encapsulates the real action.
+     * @param <V> The type of query result.
+     * @return The result of query execution.
+     */
+    public <V> V execute(int queryId, long id, QueryClosure<V> closure) {
+        Query query = queryRegistry.get(queryId);
         List<Connection> connections = resolveShards(id);
         return query.query(closure, connections);
     }
 
-    public <V> V execute(int queryType, QueryClosure<V> closure) {
-        return execute(queryType, INVALID_ID, closure);
+    /**
+     * Executes the query on all shards or undefined shard.
+     * @param queryId The query id.
+     * @param closure The object that encapsulates the real action.
+     * @param <V> The type of query result.
+     * @return The result of query execution.
+     */
+    public <V> V execute(int queryId, QueryClosure<V> closure) {
+        return execute(queryId, INVALID_ID, closure);
     }
 
     private List<Connection> resolveShards(long id) {

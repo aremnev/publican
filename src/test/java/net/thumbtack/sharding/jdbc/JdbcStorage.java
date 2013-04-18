@@ -25,7 +25,7 @@ public class JdbcStorage implements Storage {
         config.setShardFactory(new JdbcShardFactory());
         config.setKeyMapper(new ModuloKeyMapper(shardConfigs.size()));
         Properties queryProps = new Properties();
-            queryProps.load(Util.getResourceAsReader(queriesResource));
+        queryProps.load(Util.getResourceAsReader(queriesResource));
         List<QueryConfig> queryConfigs = QueryConfig.fromProperties(queryProps);
         config.setQueryConfigs(queryConfigs);
         config.setWorkThreads(2);
