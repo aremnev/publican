@@ -25,10 +25,11 @@ public class QueryConfig {
         }
         List<QueryConfig> result = new ArrayList<QueryConfig>(queryIds.size());
         for (long queryId : queryIds) {
-            boolean isSync = Boolean.parseBoolean(props.getProperty(QUERY + queryId + SYNCHRONOUS, "false"));
-            String className = props.getProperty(QUERY + queryId + CLASS);
-            Class<Query> clazz = (Class<Query>) Class.forName(className);
-            result.add(new QueryConfig(queryId, clazz, isSync));
+            QueryConfig config = new QueryConfig();
+            config.setId(queryId);
+            config.setClazz((Class<Query>) Class.forName(props.getProperty(QUERY + queryId + CLASS)));
+            config.setSynchronous(Boolean.parseBoolean(props.getProperty(QUERY + queryId + SYNCHRONOUS, "false")));
+            result.add(config);
         }
         return result;
     }

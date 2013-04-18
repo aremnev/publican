@@ -16,26 +16,16 @@ public class JdbcStorage implements Storage {
 
     private ShardingFacade sharding;
 
-    public JdbcStorage() throws Exception {
-        int shardsCount = 2;
+    public JdbcStorage(String queriesResource) throws Exception {
         ShardingConfig config = new ShardingConfig();
-        List<JdbcShardConfig> shardConfigs = new ArrayList<JdbcShardConfig>();
-        for (int i = 0; i < shardsCount; i++) {
-            shardConfigs.add(new JdbcShardConfig(
-                    i,
-                    "org.h2.Driver",
-                    "jdbc:h2:mem:test"+ i + ";AUTOCOMMIT=ON;DB_CLOSE_DELAY=-1;MODE=MYSQL;MVCC=TRUE;LOCK_TIMEOUT=120000",
-                    "sa",
-                    ""
-            ));
-        }
+        Properties shardProps = new Properties();
+        shardProps.load(Util.getResourceAsReader("H2-shard.properties"));
+        List<JdbcShardConfig> shardConfigs = JdbcShardConfig.fromProperties(shardProps);
         config.setShardConfigs(shardConfigs);
         config.setShardFactory(new JdbcShardFactory());
-        config.setKeyMapper(new ModuloKeyMapper(shardsCount));
+        config.setKeyMapper(new ModuloKeyMapper(shardConfigs.size()));
         Properties queryProps = new Properties();
-        try {
-            queryProps.load(Util.getResourceAsReader("query-async.properties"));
-        } catch (IOException ignored) {}
+            queryProps.load(Util.getResourceAsReader(queriesResource));
         List<QueryConfig> queryConfigs = QueryConfig.fromProperties(queryProps);
         config.setQueryConfigs(queryConfigs);
         config.setWorkThreads(2);

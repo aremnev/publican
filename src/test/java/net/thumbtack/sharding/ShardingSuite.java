@@ -11,10 +11,12 @@ public class ShardingSuite {
 
     H2Server h2Server = new H2Server();
 
-    public Storage jdbcStorage;
+    public Storage jdbcStorageAsync;
+    public Storage jdbcStorageSync;
 
     public ShardingSuite() throws Exception {
-        jdbcStorage = new JdbcStorage();
+        jdbcStorageAsync = new JdbcStorage("query-async.properties");
+        jdbcStorageSync = new JdbcStorage("query-sync.properties");
     }
 
     public void start() throws Exception {

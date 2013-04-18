@@ -144,8 +144,10 @@ public class DaoTest extends ShardingTest {
         shardingSuite.start();
 
         List<Object[]> params = new ArrayList<Object[]>();
-        params.add(new Object[] {shardingSuite.jdbcStorage, new CommonDao(shardingSuite.jdbcStorage.sharding())});
-        params.add(new Object[] {shardingSuite.jdbcStorage, new ShardedDao(shardingSuite.jdbcStorage.sharding())});
+        params.add(new Object[] {shardingSuite.jdbcStorageAsync, new CommonDao(shardingSuite.jdbcStorageAsync.sharding())});
+        params.add(new Object[] {shardingSuite.jdbcStorageAsync, new ShardedDao(shardingSuite.jdbcStorageAsync.sharding())});
+        params.add(new Object[] {shardingSuite.jdbcStorageSync, new ShardedDao(shardingSuite.jdbcStorageSync.sharding())});
+        params.add(new Object[] {shardingSuite.jdbcStorageSync, new ShardedDao(shardingSuite.jdbcStorageSync.sharding())});
         return params;
     }
 }
