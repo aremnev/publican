@@ -3,8 +3,6 @@ package net.thumbtack.sharding.jdbc;
 import net.thumbtack.sharding.core.query.Connection;
 import net.thumbtack.sharding.core.Shard;
 
-import java.sql.DriverManager;
-
 public class JdbcShard implements Shard {
 
     private final long id;
@@ -13,12 +11,12 @@ public class JdbcShard implements Shard {
     private final String user;
     private final String password;
 
-    public JdbcShard(long id, String driver, String url, String user, String password) {
-        this.id = id;
-        this.driver = driver;
-        this.url = url;
-        this.user = user;
-        this.password = password;
+    public JdbcShard(JdbcShardConfig config) {
+        this.id = config.getId();
+        this.driver = config.getDriver();
+        this.url = config.getUrl();
+        this.user = config.getUser();
+        this.password = config.getPassword();
     }
 
     @Override

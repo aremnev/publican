@@ -2,7 +2,7 @@ package net.thumbtack.sharding;
 
 import net.thumbtack.sharding.common.Dao;
 import net.thumbtack.sharding.common.Entity;
-import net.thumbtack.sharding.common.StorageServer;
+import net.thumbtack.sharding.common.Storage;
 import net.thumbtack.sharding.jdbc.CommonDao;
 import net.thumbtack.sharding.jdbc.ShardedDao;
 import org.junit.AfterClass;
@@ -24,14 +24,14 @@ public class DaoTest extends ShardingTest {
 
     private static ShardingSuite shardingSuite;
 
-    private StorageServer server;
+    private Storage server;
     private Dao<Entity> dao;
 
     private Entity[] testEntities;
 
     private Random random = new Random(System.currentTimeMillis());
 
-    public DaoTest(StorageServer server, Dao<Entity> dao) {
+    public DaoTest(Storage server, Dao<Entity> dao) {
         this.server = server;
         this.dao = dao;
     }
@@ -144,8 +144,8 @@ public class DaoTest extends ShardingTest {
         shardingSuite.start();
 
         List<Object[]> params = new ArrayList<Object[]>();
-        params.add(new Object[] {shardingSuite.jdbcServer, new CommonDao(shardingSuite.jdbcServer.sharding())});
-        params.add(new Object[] {shardingSuite.jdbcServer, new ShardedDao(shardingSuite.jdbcServer.sharding())});
+        params.add(new Object[] {shardingSuite.jdbcStorage, new CommonDao(shardingSuite.jdbcStorage.sharding())});
+        params.add(new Object[] {shardingSuite.jdbcStorage, new ShardedDao(shardingSuite.jdbcStorage.sharding())});
         return params;
     }
 }

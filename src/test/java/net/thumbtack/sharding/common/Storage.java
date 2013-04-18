@@ -2,11 +2,7 @@ package net.thumbtack.sharding.common;
 
 import net.thumbtack.sharding.ShardingFacade;
 
-public interface StorageServer {
-
-    public void start() throws Exception;
-
-    public void stop() throws Exception;
+public interface Storage {
 
     public void reset() throws Exception;
 

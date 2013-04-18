@@ -12,9 +12,15 @@ public class Sharding {
 
     private QueryRegistry queryRegistry;
 
-    public Sharding(Configuration config) {
-        shardResolver = new ShardResolver(config.getShards(), config.getKeyMapper());
-        queryRegistry = config.getQueryRegistry();
+    public Sharding(ShardingConfig config) {
+        List<? extends ShardConfig> shardConfigs = config.getShardConfigs();
+        ShardFactory shardFactory = config.getShardFactory();
+        List<Shard> shards = new ArrayList<Shard>(config.getShardConfigs().size());
+        for (ShardConfig shardConfig : shardConfigs) {
+            shards.add(shardFactory.createShard(shardConfig));
+        }
+        shardResolver = new ShardResolver(shards, config.getKeyMapper());
+        queryRegistry = new QueryRegistry(config);
     }
 
     public <V> V execute(int queryType, long id, QueryClosure<V> closure) {

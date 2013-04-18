@@ -1,29 +1,29 @@
 package net.thumbtack.sharding;
 
-import net.thumbtack.sharding.common.StorageServer;
-import net.thumbtack.sharding.core.*;
-import net.thumbtack.sharding.jdbc.JdbcShard;
-import net.thumbtack.sharding.jdbc.JdbcStorageServer;
+import net.thumbtack.sharding.common.Storage;
+import net.thumbtack.sharding.jdbc.JdbcStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ShardingSuite {
 
     private static final Logger logger = LoggerFactory.getLogger(ShardingSuite.class);
 
-    public StorageServer jdbcServer;
+    H2Server h2Server = new H2Server();
+
+    public Storage jdbcStorage;
+
+    public ShardingSuite() throws Exception {
+        jdbcStorage = new JdbcStorage();
+    }
 
     public void start() throws Exception {
-        jdbcServer = new JdbcStorageServer();
-        jdbcServer.start();
+        h2Server.start();
         logger.debug("embedded db server started");
     }
 
     public void stop() throws Exception {
-        jdbcServer.stop();
+        h2Server.stop();
         logger.debug("embedded db server stopped");
     }
 }
