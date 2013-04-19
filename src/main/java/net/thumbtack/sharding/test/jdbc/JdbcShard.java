@@ -1,4 +1,4 @@
-package net.thumbtack.sharding.jdbc;
+package net.thumbtack.sharding.test.jdbc;
 
 import net.thumbtack.sharding.core.query.Connection;
 import net.thumbtack.sharding.core.Shard;

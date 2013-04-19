@@ -38,7 +38,7 @@ public class Sharding {
      * @param <V> The type of query result.
      * @return The result of query execution.
      */
-    public <V> V execute(int queryId, long id, QueryClosure<V> closure) {
+    public <V> V execute(long queryId, long id, QueryClosure<V> closure) {
         Query query = queryRegistry.get(queryId);
         List<Connection> connections = resolveShards(id);
         return query.query(closure, connections);
@@ -51,7 +51,7 @@ public class Sharding {
      * @param <V> The type of query result.
      * @return The result of query execution.
      */
-    public <V> V execute(int queryId, QueryClosure<V> closure) {
+    public <V> V execute(long queryId, QueryClosure<V> closure) {
         return execute(queryId, INVALID_ID, closure);
     }
 

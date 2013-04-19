@@ -1,4 +1,4 @@
-package net.thumbtack.sharding.common;
+package net.thumbtack.sharding.test.common;
 
 import java.util.List;
 

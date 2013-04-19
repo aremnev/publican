@@ -1,10 +1,10 @@
-package net.thumbtack.sharding;
+package net.thumbtack.sharding.test;
 
-import net.thumbtack.sharding.common.Dao;
-import net.thumbtack.sharding.common.Entity;
-import net.thumbtack.sharding.common.Storage;
-import net.thumbtack.sharding.jdbc.CommonDao;
-import net.thumbtack.sharding.jdbc.ShardedDao;
+import net.thumbtack.sharding.test.common.Dao;
+import net.thumbtack.sharding.test.common.Entity;
+import net.thumbtack.sharding.test.common.Storage;
+import net.thumbtack.sharding.test.jdbc.CommonDao;
+import net.thumbtack.sharding.test.jdbc.ShardedDao;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;

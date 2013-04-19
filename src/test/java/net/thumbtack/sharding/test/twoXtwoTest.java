@@ -1,4 +1,4 @@
-package net.thumbtack.sharding;
+package net.thumbtack.sharding.test;
 
 import org.junit.Test;
 import org.slf4j.Logger;

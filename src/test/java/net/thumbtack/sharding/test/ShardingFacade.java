@@ -1,4 +1,4 @@
-package net.thumbtack.sharding;
+package net.thumbtack.sharding.test;
 
 import net.thumbtack.sharding.core.Sharding;
 import net.thumbtack.sharding.core.query.QueryClosure;
@@ -7,13 +7,13 @@ import java.util.List;
 
 public class ShardingFacade {
 
-    public static final int SELECT_SPEC_SHARD = 1001;          // select from specific shard
-    public static final int SELECT_SHARD = 1002;               // select from undefined shard
-    public static final int SELECT_ANY_SHARD = 1003;           // select from any shard
-    public static final int SELECT_ALL_SHARDS = 1004;          // select from all shards with union of results to list
-    public static final int SELECT_ALL_SHARDS_SUM = 1005;      // select from all shards with summation of results to int
-    public static final int UPDATE_SPEC_SHARD = 1006;          // update on specific shard
-    public static final int UPDATE_ALL_SHARDS = 1007;          // update on all shards
+    public static final long SELECT_SPEC_SHARD = 1001;          // select from specific shard
+    public static final long SELECT_SHARD = 1002;               // select from undefined shard
+    public static final long SELECT_ANY_SHARD = 1003;           // select from any shard
+    public static final long SELECT_ALL_SHARDS = 1004;          // select from all shards with union of results to list
+    public static final long SELECT_ALL_SHARDS_SUM = 1005;      // select from all shards with summation of results to int
+    public static final long UPDATE_SPEC_SHARD = 1006;          // update on specific shard
+    public static final long UPDATE_ALL_SHARDS = 1007;          // update on all shards
 
     private Sharding sharding;
 

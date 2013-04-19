@@ -1,4 +1,4 @@
-package net.thumbtack.sharding;
+package net.thumbtack.sharding.test;
 
 import org.junit.Rule;
 import org.junit.rules.MethodRule;

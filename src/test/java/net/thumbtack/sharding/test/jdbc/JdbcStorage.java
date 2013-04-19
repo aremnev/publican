@@ -1,14 +1,12 @@
-package net.thumbtack.sharding.jdbc;
+package net.thumbtack.sharding.test.jdbc;
 
 import net.thumbtack.helper.Util;
-import net.thumbtack.sharding.ShardingFacade;
-import net.thumbtack.sharding.common.Storage;
+import net.thumbtack.sharding.test.ShardingFacade;
+import net.thumbtack.sharding.test.common.Storage;
 import net.thumbtack.sharding.core.*;
 import net.thumbtack.sharding.core.query.QueryClosure;
 
-import java.io.IOException;
 import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 

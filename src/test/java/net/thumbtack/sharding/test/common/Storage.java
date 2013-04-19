@@ -1,6 +1,6 @@
-package net.thumbtack.sharding.common;
+package net.thumbtack.sharding.test.common;
 
-import net.thumbtack.sharding.ShardingFacade;
+import net.thumbtack.sharding.test.ShardingFacade;
 
 public interface Storage {
 
