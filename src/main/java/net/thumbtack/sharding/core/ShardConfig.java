@@ -21,7 +21,7 @@ public class ShardConfig {
     }
 
     /**
-     * Get the shard id.
+     * Gets the shard id.
      * @return The shard id.
      */
     public long getId() {
@@ -29,7 +29,7 @@ public class ShardConfig {
     }
 
     /**
-     * Set the shard id.
+     * Sets the shard id.
      * @param id The shard id.
      */
     public void setId(long id) {

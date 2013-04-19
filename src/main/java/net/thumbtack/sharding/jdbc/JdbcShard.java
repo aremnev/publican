@@ -3,6 +3,9 @@ package net.thumbtack.sharding.jdbc;
 import net.thumbtack.sharding.core.query.Connection;
 import net.thumbtack.sharding.core.Shard;
 
+/**
+ * The jdbc shard.
+ */
 public class JdbcShard implements Shard {
 
     private final long id;
@@ -11,6 +14,10 @@ public class JdbcShard implements Shard {
     private final String user;
     private final String password;
 
+    /**
+     * Constructor.
+     * @param config The jdbc shard configuration.
+     */
     public JdbcShard(JdbcShardConfig config) {
         this.id = config.getId();
         this.driver = config.getDriver();

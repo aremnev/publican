@@ -41,7 +41,7 @@ public class ShardingConfig {
     }
 
     /**
-     * Get the list of shard configurations.
+     * Gets the list of shard configurations.
      * @return The list of shard configurations.
      */
     public List<? extends ShardConfig> getShardConfigs() {
@@ -49,7 +49,7 @@ public class ShardingConfig {
     }
 
     /**
-     * Set the list of shard configurations.
+     * Sets the list of shard configurations.
      * @param shardConfigs The list of shard configurations.
      */
     public void setShardConfigs(List<? extends ShardConfig> shardConfigs) {
@@ -57,7 +57,7 @@ public class ShardingConfig {
     }
 
     /**
-     * Get the shards factory.
+     * Gets the shards factory.
      * @return The shards factory.
      */
     public ShardFactory getShardFactory() {
@@ -65,7 +65,7 @@ public class ShardingConfig {
     }
 
     /**
-     * Set the shards factory.
+     * Sets the shards factory.
      * @param shardFactory The shards factory.
      */
     public void setShardFactory(ShardFactory shardFactory) {
@@ -73,7 +73,7 @@ public class ShardingConfig {
     }
 
     /**
-     * Get the key mapper.
+     * Gets the key mapper.
      * @return The key mapper.
      */
     public KeyMapper getKeyMapper() {
@@ -81,7 +81,7 @@ public class ShardingConfig {
     }
 
     /**
-     * Set the key mapper.
+     * Sets the key mapper.
      * @param keyMapper The key mapper.
      */
     public void setKeyMapper(KeyMapper keyMapper) {
@@ -89,7 +89,7 @@ public class ShardingConfig {
     }
 
     /**
-     * Get the list of query configurations.
+     * Gets the list of query configurations.
      * @return The list of query configurations.
      */
     public List<QueryConfig> getQueryConfigs() {
@@ -97,7 +97,7 @@ public class ShardingConfig {
     }
 
     /**
-     * Set the list of query configurations.
+     * Sets the list of query configurations.
      * @param queryConfigs The list of query configurations.
      */
     public void setQueryConfigs(List<QueryConfig> queryConfigs) {
@@ -105,7 +105,7 @@ public class ShardingConfig {
     }
 
     /**
-     * Get the number of work threads.
+     * Gets the number of work threads.
      * @return The number of work threads.
      */
     public int getWorkThreads() {
@@ -113,7 +113,7 @@ public class ShardingConfig {
     }
 
     /**
-     * Set the number of work threads.
+     * Sets the number of work threads.
      * @param workThreads The number of work threads.
      */
     public void setWorkThreads(int workThreads) {

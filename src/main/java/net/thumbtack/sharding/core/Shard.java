@@ -8,13 +8,13 @@ import net.thumbtack.sharding.core.query.Connection;
 public interface Shard {
 
     /**
-     * Get the shard id.
+     * Gets the shard id.
      * @return The shard id.
      */
     long getId();
 
     /**
-     * Get the connection.
+     * Gets the connection.
      * @return The connection.
      */
     Connection getConnection();

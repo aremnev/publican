@@ -1,7 +1,7 @@
 package net.thumbtack.sharding.core;
 
 /**
- * Creates new shard by config.
+ * Creates new shard from config.
  */
 public interface ShardFactory {
 

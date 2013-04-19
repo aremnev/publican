@@ -61,7 +61,7 @@ public class QueryConfig {
     }
 
     /**
-     * Get the query id.
+     * Gets the query id.
      * @return The query id.
      */
     public long getId() {
@@ -69,7 +69,7 @@ public class QueryConfig {
     }
 
     /**
-     * Set the query id.
+     * Sets the query id.
      * @param id The query id.
      */
     public void setId(long id) {
@@ -77,7 +77,7 @@ public class QueryConfig {
     }
 
     /**
-     * Get the query class.
+     * Gets the query class.
      * @return The query class.
      */
     public Class<Query> getClazz() {
@@ -85,7 +85,7 @@ public class QueryConfig {
     }
 
     /**
-     * Set the query class.
+     * Sets the query class.
      * @param clazz The query class.
      */
     public void setClazz(Class<Query> clazz) {
@@ -101,7 +101,7 @@ public class QueryConfig {
     }
 
     /**
-     * Set the query synchronicity.
+     * Sets the query synchronicity.
      * @param synchronous True if synchronous false otherwise.
      */
     public void setSynchronous(boolean synchronous) {

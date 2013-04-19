@@ -6,7 +6,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- *
+ * Encapsulates the sql connection.
  */
 public class JdbcConnection implements Connection {
 
@@ -16,6 +16,13 @@ public class JdbcConnection implements Connection {
     private String user;
     private String password;
 
+    /**
+     * Constructor.
+     * @param driver The sql driver full class name.
+     * @param url The url to database.
+     * @param user The database user.
+     * @param password The database password.
+     */
     public JdbcConnection(String driver, String url, String user, String password) {
         this.driver = driver;
         this.url = url;
@@ -69,6 +76,10 @@ public class JdbcConnection implements Connection {
         }
     }
 
+    /**
+     * Gets the sql connection.
+     * @return The sql connection.
+     */
     public java.sql.Connection getConnection() {
         return sqlConn;
     }
