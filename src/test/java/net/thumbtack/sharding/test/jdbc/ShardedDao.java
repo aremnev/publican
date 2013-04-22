@@ -1,16 +1,18 @@
 package net.thumbtack.sharding.test.jdbc;
 
+import fj.F;
 import net.thumbtack.sharding.test.common.Entity;
 import net.thumbtack.sharding.test.common.EntityDao;
 import net.thumbtack.sharding.core.query.Connection;
 import net.thumbtack.sharding.core.query.QueryClosure;
-import net.thumbtack.sharding.test.ShardingFacade;
+import net.thumbtack.sharding.ShardingFacade;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
+
+import static net.thumbtack.sharding.SqlUtil.*;
 
 public class ShardedDao implements EntityDao {
 
@@ -28,7 +30,7 @@ public class ShardedDao implements EntityDao {
                 java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
                 String sql = "SELECT * FROM `common` WHERE `id` = " + id + ";";
                 ResultSet resultSet = sqlConn.prepareStatement(sql).executeQuery();
-                return resultSet.next() ? parseEntity(resultSet) : null;
+                return resultSet.next() ? parseEntity.f(resultSet) : null;
             }
         });
     }
@@ -46,7 +48,7 @@ public class ShardedDao implements EntityDao {
                 idsSrt.deleteCharAt(idsSrt.length() - 1);
                 String sql = "SELECT * FROM `common` WHERE `id` IN (" + idsSrt + ");";
                 ResultSet resultSet = sqlConn.prepareStatement(sql).executeQuery();
-                return parseEntities(resultSet);
+                return parseEntities(resultSet, parseEntity);
             }
         });
     }
@@ -59,7 +61,7 @@ public class ShardedDao implements EntityDao {
                 java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
                 String sql = "SELECT * FROM `common`;";
                 ResultSet resultSet = sqlConn.prepareStatement(sql).executeQuery();
-                return parseEntities(resultSet);
+                return parseEntities(resultSet, parseEntity);
             }
         });
     }
@@ -131,21 +133,20 @@ public class ShardedDao implements EntityDao {
         });
     }
 
-    private Entity parseEntity(ResultSet resultSet) throws SQLException {
-        return new Entity(
-                resultSet.getLong(1),
-                resultSet.getString(2),
-                Timestamp.valueOf(resultSet.getString(3))
-        );
-    }
-
-    private List<Entity> parseEntities(ResultSet resultSet) throws SQLException {
-        List<Entity> result = new ArrayList<Entity>();
-        while (resultSet.next()) {
-            result.add(parseEntity(resultSet));
+    private F<ResultSet, Entity> parseEntity = new F<ResultSet, Entity>() {
+        @Override
+        public Entity f(ResultSet resultSet) {
+            try {
+                return new Entity(
+                        resultSet.getLong(1),
+                        resultSet.getString(2),
+                        Timestamp.valueOf(resultSet.getString(3))
+                );
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
-        return result;
-    }
+    };
 
     private String insertStr(Entity entity) {
         Timestamp time  = new Timestamp(entity.date.getTime());

@@ -1,5 +1,7 @@
 package net.thumbtack.sharding.test.common;
 
+import net.thumbtack.sharding.Dao;
+
 import java.util.List;
 
 public interface EntityDao extends Dao<Entity> {

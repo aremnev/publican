@@ -1,4 +1,4 @@
-package net.thumbtack.sharding.test;
+package net.thumbtack.sharding;
 
 import org.h2.tools.Server;
 import org.slf4j.Logger;

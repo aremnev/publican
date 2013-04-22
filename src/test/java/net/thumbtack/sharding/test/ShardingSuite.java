@@ -1,6 +1,8 @@
 package net.thumbtack.sharding.test;
 
-import net.thumbtack.sharding.test.common.Storage;
+import net.thumbtack.sharding.H2Server;
+import net.thumbtack.sharding.Storage;
+import net.thumbtack.sharding.example.jdbc.friends.FriendsStorage;
 import net.thumbtack.sharding.test.jdbc.JdbcStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package net.thumbtack.sharding.test;
+package net.thumbtack.sharding;
 
 import net.thumbtack.sharding.core.Sharding;
 import net.thumbtack.sharding.core.query.QueryClosure;
