@@ -9,8 +9,12 @@ import net.thumbtack.sharding.ShardingFacade;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static net.thumbtack.sharding.SqlUtil.*;
 
@@ -36,11 +40,12 @@ public class ShardedDao implements EntityDao {
     }
 
     @Override
-    public List<Entity> select(final List<Long> ids) {
-        return sharding.selectAll(new QueryClosure<List<Entity>>() {
+    public List<Entity> select(List<Long> ids) {
+        return sharding.selectAll(ids, new QueryClosure<List<Entity>>() {
             @Override
             public List<Entity> call(Connection connection) throws Exception {
                 java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
+                List<Long> ids = connection.getCargo();
                 StringBuilder idsSrt = new StringBuilder();
                 for (long id : ids) {
                     idsSrt.append(id).append(",");
@@ -82,9 +87,26 @@ public class ShardedDao implements EntityDao {
 
     @Override
     public List<Entity> insert(List<Entity> entities) {
+        final Map<Long, Entity> entityMap = new HashMap<Long, Entity>(entities.size());
         for (Entity entity : entities) {
-            insert(entity);
+            entityMap.put(entity.getId(), entity);
         }
+        sharding.updateAll(new ArrayList<Long>(entityMap.keySet()), new QueryClosure<Object>() {
+            @Override
+            public Object call(Connection connection) throws Exception {
+                List<Long> ids = connection.getCargo();
+                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
+                Statement statement = sqlConn.createStatement();
+                for (long id : ids) {
+                    statement.addBatch(insertStr(entityMap.get(id)));
+                }
+                int[] res = statement.executeBatch();
+                int ins = 0;
+                for (int r : res)
+                    ins += r;
+                return ins;
+            }
+        });
         return entities;
     }
 

@@ -45,6 +45,20 @@ public class Sharding {
     }
 
     /**
+     * Executes the query on the several shards which is resolved by id.
+     * @param queryId The query id.
+     * @param ids The list of ids to resolve shard.
+     * @param closure The object that encapsulates the real action.
+     * @param <V> The type of query result.
+     * @return The result of query execution.
+     */
+    public <V> V execute(long queryId, List<Long> ids, QueryClosure<V> closure) {
+        Query query = queryRegistry.get(queryId);
+        List<Connection> connections = shardResolver.resolveIds(ids);
+        return query.query(closure, connections);
+    }
+
+    /**
      * Executes the query on all shards or undefined shard.
      * @param queryId The query id.
      * @param closure The object that encapsulates the real action.

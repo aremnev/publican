@@ -8,7 +8,7 @@ import java.sql.SQLException;
 /**
  * Encapsulates the sql connection.
  */
-public class JdbcConnection implements Connection {
+public class JdbcConnection extends Connection {
 
     private java.sql.Connection sqlConn;
     private String driver;

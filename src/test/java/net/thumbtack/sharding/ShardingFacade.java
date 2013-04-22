@@ -41,6 +41,11 @@ public class ShardingFacade {
         return sharding.execute(SELECT_ALL_SHARDS, closure);
     }
 
+    // select from all shards with results union and with resolving shards by several ids
+    public <U> List<U> selectAll(List<Long> ids, QueryClosure<List<U>> closure) {
+        return sharding.execute(SELECT_ALL_SHARDS, ids, closure);
+    }
+
     // select from all shards with results union
     public Integer selectSumAll(QueryClosure<Integer> closure) {
         return sharding.execute(SELECT_ALL_SHARDS_SUM, closure);
@@ -55,5 +60,11 @@ public class ShardingFacade {
     // the result of the method is the last successful closure call result
     public <U> U updateAll(QueryClosure<U> closure) {
         return sharding.execute(UPDATE_ALL_SHARDS, closure);
+    }
+
+    // update on all shards resolver by ids
+    // the result of the method is the last successful closure call result
+    public <U> U updateAll(List<Long> ids, QueryClosure<U> closure) {
+        return sharding.execute(UPDATE_ALL_SHARDS, ids, closure);
     }
 }
