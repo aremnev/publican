@@ -114,7 +114,38 @@ public class DaoTest extends ShardingTest {
     }
 
     @Test
+    public void updateSeveralTest() throws Exception {
+        List<Object> toUpdate = Arrays.asList(inserted[0], inserted[2]);
+        changeSomeTextField(toUpdate.get(0));
+        changeSomeTextField(toUpdate.get(1));
+        List<Object> notUpdated = dao.select(Arrays.asList(fId.f(toUpdate.get(0)), fId.f(toUpdate.get(1))));
+        sortById(notUpdated);
+        for (int i = 0; i < toUpdate.size(); i++) {
+            assertFalse(toUpdate.get(i).equals(notUpdated.get(i)));
+        }
+
+        dao.update(toUpdate);
+        List<Object> updated = dao.select(Arrays.asList(fId.f(toUpdate.get(0)), fId.f(toUpdate.get(1))));
+        sortById(updated);
+        for (int i = 0; i < toUpdate.size(); i++) {
+            assertEquals(toUpdate.get(i), updated.get(i));
+        }
+    }
+
+    @Test
     public void deleteTest() throws Exception {
+        List<Object> toDelete = Arrays.asList(inserted[0], inserted[2]);
+        List<Object> notDeleted = dao.select(Arrays.asList(fId.f(toDelete.get(0)), fId.f(toDelete.get(1))));
+        for (int i = 0; i < toDelete.size(); i++) {
+            assertEquals(toDelete.get(i), notDeleted.get(i));
+        }
+        dao.delete(map(toDelete, fId));
+        List<Object> deleted = dao.select(Arrays.asList(fId.f(toDelete.get(0)), fId.f(toDelete.get(1))));
+        assertTrue(deleted.isEmpty());
+    }
+
+    @Test
+    public void deleteSeveralTest() throws Exception {
         Object toDelete = inserted[1];
         Object notDeleted = dao.select(fId.f(toDelete));
         assertEquals(toDelete, notDeleted);

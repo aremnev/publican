@@ -59,4 +59,13 @@ public class Entity {
         result = 31 * result + (date != null ? date.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "Entity{" +
+                "id=" + id +
+                ", text='" + text + '\'' +
+                ", date=" + date +
+                '}';
+    }
 }

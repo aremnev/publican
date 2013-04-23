@@ -44,12 +44,22 @@ public class FriendshipDao implements Dao<Friendship> {
     }
 
     @Override
+    public boolean update(List<Friendship> entities) {
+        return false;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
     public boolean delete(Friendship entity) {
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
     public boolean delete(long id) {
+        return false;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public boolean delete(List<Long> ids) {
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 

@@ -86,7 +86,7 @@ public class UserDao implements Dao<User> {
 
     @Override
     public List<User> insert(final List<User> users) {
-        final Map<Long, User> userMap = map(users, new F<User, Long>() {
+        final Map<Long, User> userMap = index(users, new F<User, Long>() {
             @Override
             public Long f(User user) {
                 return user.getId();
@@ -113,12 +113,32 @@ public class UserDao implements Dao<User> {
             @Override
             public Boolean call(Connection connection) throws Exception {
                 java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
-                Timestamp birthDate  = new Timestamp(user.getBirthDate().getTime());
-                String sql = "UPDATE `users` " +
-                        "SET `email` = '"+ user.getEmail() +"', `name` = '"+ user.getName() +"', `birthDate` = '"+ birthDate +
-                        "' WHERE `id` = "+ user.getId();
+                String sql = updateStr(user);
                 int upd = sqlConn.prepareStatement(sql).executeUpdate();
                 return upd > 0;
+            }
+        });
+    }
+
+    @Override
+    public boolean update(List<User> users) {
+        final Map<Long, User> userMap = index(users, new F<User, Long>() {
+            @Override
+            public Long f(User user) {
+                return user.getId();
+            }
+        });
+        return sharding.updateAll(new ArrayList<Long>(userMap.keySet()), new QueryClosure<Boolean>() {
+            @Override
+            public Boolean call(Connection connection) throws Exception {
+                List<Long> ids = connection.getCargo();
+                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
+                Statement statement = sqlConn.createStatement();
+                for (long id : ids) {
+                    statement.addBatch(updateStr(userMap.get(id)));
+                }
+                statement.executeBatch();
+                return true;
             }
         });
     }
@@ -134,9 +154,26 @@ public class UserDao implements Dao<User> {
             @Override
             public Boolean call(Connection connection) throws Exception {
                 java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
-                String sql = "DELETE FROM `users` WHERE `id` = "+ id;
+                String sql = deleteStr(id);
                 int upd = sqlConn.prepareStatement(sql).executeUpdate();
                 return upd > 0;
+            }
+        });
+    }
+
+    @Override
+    public boolean delete(List<Long> ids) {
+        return sharding.updateAll(ids, new QueryClosure<Boolean>() {
+            @Override
+            public Boolean call(Connection connection) throws Exception {
+                List<Long> ids = connection.getCargo();
+                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
+                Statement statement = sqlConn.createStatement();
+                for (long id : ids) {
+                    statement.addBatch(deleteStr(id));
+                }
+                statement.executeBatch();
+                return true;
             }
         });
     }
@@ -174,5 +211,16 @@ public class UserDao implements Dao<User> {
         Timestamp birthDate  = new Timestamp(user.getBirthDate().getTime());
         return "INSERT INTO `users` (`id`, `email`, `name`, `birthDate`) VALUES ("+
                 user.getId() +",'"+ user.getEmail() +"', '"+ user.getName() +"', '"+ birthDate +"');";
+    }
+
+    private String updateStr(User user) {
+        Timestamp birthDate  = new Timestamp(user.getBirthDate().getTime());
+        return "UPDATE `users` " +
+                "SET `email` = '"+ user.getEmail() +"', `name` = '"+ user.getName() +"', `birthDate` = '"+ birthDate +
+                "' WHERE `id` = "+ user.getId();
+    }
+
+    private String deleteStr(long id) {
+        return "DELETE FROM `users` WHERE `id` = "+ id;
     }
 }

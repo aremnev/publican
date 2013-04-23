@@ -177,12 +177,28 @@ public class Util {
      * @param <V> The value type.
      * @return The map.
      */
-    public static <K, V> Map<K, V> map(List<V> list, F<V, K> mapping) {
+    public static <K, V> Map<K, V> index(List<V> list, F<V, K> mapping) {
         Map<K, V> map = new HashMap<K, V>(list.size());
         for (V v : list) {
             map.put(mapping.f(v), v);
         }
         return map;
+    }
+
+    /**
+     * Builds a new list by applying a function to all elements of this list.
+     * @param list The list.
+     * @param mapping The function to apply to each element.
+     * @param <A> The element type of the returned collection.
+     * @param <B> The element type of the list.
+     * @return A new list resulting from applying the given function f to each element of this list and collecting the results.
+     */
+    public static <A, B> List<B> map(List<A> list, F<A, B> mapping) {
+        List<B> res = new ArrayList<B>(list.size());
+        for (A a : list) {
+            res.add(mapping.f(a));
+        }
+        return res;
     }
 
     /**

@@ -108,12 +108,31 @@ public class CommonDao implements EntityDao {
             @Override
             public Boolean call(Connection connection) throws Exception {
                 java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
-                Timestamp time = new Timestamp(entity.date.getTime());
-                String sql = "UPDATE `common` SET `text` = '" + entity.text + "', `date` = '" + time + "' WHERE `id` = " + entity.id;
+                String sql = updateStr(entity);
                 int upd = sqlConn.prepareStatement(sql).executeUpdate();
                 return upd > 0;
             }
         });
+    }
+
+    @Override
+    public boolean update(final List<Entity> entities) {
+        sharding.updateAll(new QueryClosure<Integer>() {
+            @Override
+            public Integer call(Connection connection) throws Exception {
+                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
+                Statement statement = sqlConn.createStatement();
+                for (Entity entity : entities) {
+                    statement.addBatch(updateStr(entity));
+                }
+                int[] res = statement.executeBatch();
+                int ins = 0;
+                for (int r : res)
+                    ins += r;
+                return ins;
+            }
+        });
+        return true;
     }
 
     @Override
@@ -127,11 +146,31 @@ public class CommonDao implements EntityDao {
             @Override
             public Boolean call(Connection connection) throws Exception {
                 java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
-                String sql = "DELETE FROM `common` WHERE `id` = " + id;
+                String sql = deleteStr(id);
                 int upd = sqlConn.prepareStatement(sql).executeUpdate();
                 return upd > 0;
             }
         });
+    }
+
+    @Override
+    public boolean delete(final List<Long> ids) {
+        sharding.updateAll(new QueryClosure<Integer>() {
+            @Override
+            public Integer call(Connection connection) throws Exception {
+                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
+                Statement statement = sqlConn.createStatement();
+                for (long id : ids) {
+                    statement.addBatch(deleteStr(id));
+                }
+                int[] res = statement.executeBatch();
+                int ins = 0;
+                for (int r : res)
+                    ins += r;
+                return ins;
+            }
+        });
+        return true;
     }
 
     @Override
@@ -165,5 +204,14 @@ public class CommonDao implements EntityDao {
     private String insertStr(Entity entity) {
         Timestamp time  = new Timestamp(entity.date.getTime());
         return "INSERT INTO `common` (`id`,`text`, `date`) VALUES (" + entity.id + ",'" + entity.text + "', '" + time + "');";
+    }
+
+    private String updateStr(Entity entity) {
+        Timestamp time = new Timestamp(entity.date.getTime());
+        return "UPDATE `common` SET `text` = '" + entity.text + "', `date` = '" + time + "' WHERE `id` = " + entity.id;
+    }
+
+    private String deleteStr(long id) {
+        return "DELETE FROM `common` WHERE `id` = " + id;
     }
 }

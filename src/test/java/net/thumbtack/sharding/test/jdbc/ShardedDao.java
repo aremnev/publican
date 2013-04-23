@@ -87,7 +87,7 @@ public class ShardedDao implements EntityDao {
 
     @Override
     public List<Entity> insert(List<Entity> entities) {
-        final Map<Long, Entity> entityMap = map(entities, new F<Entity, Long>() {
+        final Map<Long, Entity> entityMap = index(entities, new F<Entity, Long>() {
             @Override
             public Long f(Entity entity) {
                 return entity.getId();
@@ -127,6 +127,33 @@ public class ShardedDao implements EntityDao {
     }
 
     @Override
+    public boolean update(List<Entity> entities) {
+        final Map<Long, Entity> entityMap = index(entities, new F<Entity, Long>() {
+            @Override
+            public Long f(Entity entity) {
+                return entity.getId();
+            }
+        });
+        sharding.updateAll(new ArrayList<Long>(entityMap.keySet()), new QueryClosure<Integer>() {
+            @Override
+            public Integer call(Connection connection) throws Exception {
+                List<Long> ids = connection.getCargo();
+                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
+                Statement statement = sqlConn.createStatement();
+                for (long id : ids) {
+                    statement.addBatch(updateStr(entityMap.get(id)));
+                }
+                int[] res = statement.executeBatch();
+                int ins = 0;
+                for (int r : res)
+                    ins += r;
+                return ins;
+            }
+        });
+        return true;
+    }
+
+    @Override
     public boolean delete(Entity entity) {
         return delete(entity.id);
     }
@@ -142,6 +169,27 @@ public class ShardedDao implements EntityDao {
                 return upd > 0;
             }
         });
+    }
+
+    @Override
+    public boolean delete(List<Long> ids) {
+        sharding.updateAll(ids, new QueryClosure<Integer>() {
+            @Override
+            public Integer call(Connection connection) throws Exception {
+                List<Long> ids = connection.getCargo();
+                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
+                Statement statement = sqlConn.createStatement();
+                for (long id : ids) {
+                    statement.addBatch(deleteStr(id));
+                }
+                int[] res = statement.executeBatch();
+                int ins = 0;
+                for (int r : res)
+                    ins += r;
+                return ins;
+            }
+        });
+        return true;
     }
 
     @Override
@@ -175,5 +223,14 @@ public class ShardedDao implements EntityDao {
     private String insertStr(Entity entity) {
         Timestamp time  = new Timestamp(entity.date.getTime());
         return "INSERT INTO `common` (`id`,`text`, `date`) VALUES (" + entity.id + ",'" + entity.text + "', '" + time + "');";
+    }
+
+    private String updateStr(Entity entity) {
+        Timestamp time = new Timestamp(entity.date.getTime());
+        return "UPDATE `common` SET `text` = '" + entity.text + "', `date` = '" + time + "' WHERE `id` = " + entity.id;
+    }
+
+    private String deleteStr(long id) {
+        return "DELETE FROM `common` WHERE `id` = " + id;
     }
 }

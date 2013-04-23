@@ -66,6 +66,16 @@ public interface Dao<T> {
     boolean update(T entity);
 
     /**
+     * Updates a butch of objects in the database.
+     *
+     * @param entities
+     *            Objects to update.
+     * @return <code>true</code> if instance updated, <code>false</code>
+     *         otherwise.
+     */
+    boolean update(List<T> entities);
+
+    /**
      * Deletes an object from the database.
      *
      * @param entity
@@ -84,6 +94,16 @@ public interface Dao<T> {
      *         otherwise.
      */
     boolean delete(long id);
+
+    /**
+     * Deletes a batch of objects from the database.
+     *
+     * @param ids
+     *            Primary keys of the objects to delete.
+     * @return <code>true</code> if instance updated, <code>false</code>
+     *         otherwise.
+     */
+    boolean delete(List<Long> ids);
 
     /**
      * Deletes all objects from the database. Use with extreme care!
