@@ -15,10 +15,12 @@ public class ShardingSuite {
 
     public Storage jdbcStorageAsync;
     public Storage jdbcStorageSync;
+    public Storage friendsStorage;
 
     public ShardingSuite() throws Exception {
         jdbcStorageAsync = new JdbcStorage("query-async.properties");
         jdbcStorageSync = new JdbcStorage("query-sync.properties");
+        friendsStorage = new FriendsStorage();
     }
 
     public void start() throws Exception {

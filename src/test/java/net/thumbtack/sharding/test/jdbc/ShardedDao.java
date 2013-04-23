@@ -12,11 +12,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static net.thumbtack.sharding.SqlUtil.*;
+import static net.thumbtack.helper.Util.*;
 
 public class ShardedDao implements EntityDao {
 
@@ -87,13 +87,15 @@ public class ShardedDao implements EntityDao {
 
     @Override
     public List<Entity> insert(List<Entity> entities) {
-        final Map<Long, Entity> entityMap = new HashMap<Long, Entity>(entities.size());
-        for (Entity entity : entities) {
-            entityMap.put(entity.getId(), entity);
-        }
-        sharding.updateAll(new ArrayList<Long>(entityMap.keySet()), new QueryClosure<Object>() {
+        final Map<Long, Entity> entityMap = map(entities, new F<Entity, Long>() {
             @Override
-            public Object call(Connection connection) throws Exception {
+            public Long f(Entity entity) {
+                return entity.getId();
+            }
+        });
+        sharding.updateAll(new ArrayList<Long>(entityMap.keySet()), new QueryClosure<Integer>() {
+            @Override
+            public Integer call(Connection connection) throws Exception {
                 List<Long> ids = connection.getCargo();
                 java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
                 Statement statement = sqlConn.createStatement();

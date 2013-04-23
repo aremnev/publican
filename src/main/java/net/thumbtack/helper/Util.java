@@ -1,13 +1,13 @@
 package net.thumbtack.helper;
 
+import fj.F;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.lang.reflect.Field;
+import java.util.*;
 
 /**
  * Util class.
@@ -167,5 +167,71 @@ public class Util {
 
         String s = obj.toString();
         return s.length() > MAX_LOGGABLE_LENGTH ? s.substring(0, MAX_LOGGABLE_LENGTH) + "..." : s;
+    }
+
+    /**
+     * Maps the list to the map with the given mapping function.
+     * @param list The list to map.
+     * @param mapping The mapping function.
+     * @param <K> The key type.
+     * @param <V> The value type.
+     * @return The map.
+     */
+    public static <K, V> Map<K, V> map(List<V> list, F<V, K> mapping) {
+        Map<K, V> map = new HashMap<K, V>(list.size());
+        for (V v : list) {
+            map.put(mapping.f(v), v);
+        }
+        return map;
+    }
+
+    /**
+     * Return a list of all fields (whatever access status, and on whatever
+     * superclass they were defined) that can be found on this class.
+     * This is like a union of {@link Class#getDeclaredFields()} which
+     * ignores and super-classes, and {@link Class#getFields()} which ignored
+     * non-public fields
+     * @param clazz The class to introspect
+     * @return The complete list of fields
+     */
+    public static Field[] getAllFields(Class<?> clazz)
+    {
+        List<Class<?>> classes = getAllSuperclasses(clazz);
+        classes.add(clazz);
+        return getAllFields(classes);
+    }
+    /**
+     * As {@link #getAllFields(Class)} but acts on a list of {@link Class}s and
+     * uses only {@link Class#getDeclaredFields()}.
+     * @param classes The list of classes to reflect on
+     * @return The complete list of fields
+     */
+    private static Field[] getAllFields(List<Class<?>> classes)
+    {
+        Set<Field> fields = new HashSet<Field>();
+        for (Class<?> clazz : classes)
+        {
+            fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+        }
+
+        return fields.toArray(new Field[fields.size()]);
+    }
+    /**
+     * Return a List of super-classes for the given class.
+     * @param clazz the class to look up
+     * @return the List of super-classes in order going up from this one
+     */
+    public static List<Class<?>> getAllSuperclasses(Class<?> clazz)
+    {
+        List<Class<?>> classes = new ArrayList<Class<?>>();
+
+        Class<?> superclass = clazz.getSuperclass();
+        while (superclass != null)
+        {
+            classes.add(superclass);
+            superclass = superclass.getSuperclass();
+        }
+
+        return classes;
     }
 }
