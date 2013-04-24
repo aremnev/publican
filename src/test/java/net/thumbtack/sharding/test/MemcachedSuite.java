@@ -25,7 +25,7 @@ public class MemcachedSuite {
     public MemcachedSuite() throws Exception {
         int maxItems = 10000;
         long maxBytes = 10000000;
-        int port1 = 11211;
+        int port1 = 11213;
         int port2 = 11212;
         InetSocketAddress addr1 = new InetSocketAddress(port1);
         InetSocketAddress addr2 = new InetSocketAddress(port2);
