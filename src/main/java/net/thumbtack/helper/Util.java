@@ -1,6 +1,7 @@
 package net.thumbtack.helper;
 
 import fj.F;
+import fj.F2;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -210,8 +211,7 @@ public class Util {
      * @param clazz The class to introspect
      * @return The complete list of fields
      */
-    public static Field[] getAllFields(Class<?> clazz)
-    {
+    public static Field[] getAllFields(Class<?> clazz) {
         List<Class<?>> classes = getAllSuperclasses(clazz);
         classes.add(clazz);
         return getAllFields(classes);
@@ -222,11 +222,9 @@ public class Util {
      * @param classes The list of classes to reflect on
      * @return The complete list of fields
      */
-    private static Field[] getAllFields(List<Class<?>> classes)
-    {
+    private static Field[] getAllFields(List<Class<?>> classes) {
         Set<Field> fields = new HashSet<Field>();
-        for (Class<?> clazz : classes)
-        {
+        for (Class<?> clazz : classes) {
             fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
         }
 
@@ -237,13 +235,11 @@ public class Util {
      * @param clazz the class to look up
      * @return the List of super-classes in order going up from this one
      */
-    public static List<Class<?>> getAllSuperclasses(Class<?> clazz)
-    {
+    public static List<Class<?>> getAllSuperclasses(Class<?> clazz) {
         List<Class<?>> classes = new ArrayList<Class<?>>();
 
         Class<?> superclass = clazz.getSuperclass();
-        while (superclass != null)
-        {
+        while (superclass != null) {
             classes.add(superclass);
             superclass = superclass.getSuperclass();
         }

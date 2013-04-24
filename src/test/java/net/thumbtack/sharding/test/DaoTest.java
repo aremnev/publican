@@ -2,8 +2,6 @@ package net.thumbtack.sharding.test;
 
 import fj.F;
 import net.thumbtack.sharding.Dao;
-import net.thumbtack.sharding.example.jdbc.friends.User;
-import net.thumbtack.sharding.example.jdbc.friends.UserDao;
 import net.thumbtack.sharding.test.common.Entity;
 import net.thumbtack.sharding.Storage;
 import net.thumbtack.sharding.test.jdbc.CommonDao;
@@ -213,23 +211,6 @@ public class DaoTest extends ShardingTest {
         params.add(new Object[] {shardingSuite.jdbcStorageAsync, new CommonDao(shardingSuite.jdbcStorageAsync.sharding()), createInserted(), createNotInserted(), entityId});
         params.add(new Object[] {shardingSuite.jdbcStorageSync, new ShardedDao(shardingSuite.jdbcStorageSync.sharding()), createInserted(), createNotInserted(), entityId});
         params.add(new Object[] {shardingSuite.jdbcStorageSync, new ShardedDao(shardingSuite.jdbcStorageSync.sharding()), createInserted(), createNotInserted(), entityId});
-
-        User[] insertedUsers = new User[] {
-                new User(1, "user1@gmail.com", "user1", new Date()),
-                new User(2, "user2@gmail.com", "user2", new Date()),
-                new User(3, "user3@gmail.com", "user3", new Date())
-        };
-
-        User notInsertedUser = new User(4, "user4@gmail.com", "user4", new Date());
-
-        F<Object, Long> userIdId = new F<Object, Long>() {
-            @Override
-            public Long f(Object o) {
-                return ((User) o).getId();
-            }
-        };
-
-        params.add(new Object[] {shardingSuite.friendsStorage, new UserDao(shardingSuite.friendsStorage.sharding()), insertedUsers, notInsertedUser, userIdId});
 
         return params;
     }

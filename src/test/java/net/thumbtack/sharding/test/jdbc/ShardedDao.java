@@ -164,7 +164,7 @@ public class ShardedDao implements EntityDao {
             @Override
             public Boolean call(Connection connection) throws Exception {
                 java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
-                String sql = "DELETE FROM `common` WHERE `id` = "+ id;
+                String sql = deleteStr(id);
                 int upd = sqlConn.prepareStatement(sql).executeUpdate();
                 return upd > 0;
             }

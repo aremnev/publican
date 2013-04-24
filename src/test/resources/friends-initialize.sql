@@ -1,11 +1,11 @@
-DROP TABLE IF EXISTS `users`;
-CREATE TABLE `users` (
-  `id` bigint(20) unsigned NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `birthDate` TIMESTAMP NOT NULL,
-  PRIMARY KEY (`id`)
-);
+-- DROP TABLE IF EXISTS `users`;
+-- CREATE TABLE `users` (
+--  `id` bigint(20) unsigned NOT NULL,
+--  `email` varchar(255) NOT NULL,
+--  `name` varchar(255) NOT NULL,
+--  `birthDate` TIMESTAMP NOT NULL,
+--  PRIMARY KEY (`id`)
+-- );
 
 -- INSERT INTO `users` VALUES
 -- (1, 'user1@gmail.com', 'user1', '1980-01-01 00:00:00'),
@@ -29,7 +29,7 @@ CREATE TABLE `friends` (
   `userId` bigint(20) unsigned NOT NULL,
   `friendId` bigint(20) unsigned NOT NULL,
   PRIMARY KEY (`userId`, `friendId`),
-  FOREIGN KEY(`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE
+--  FOREIGN KEY(`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE
 );
 
 -- INSERT INTO `friends` VALUES
