@@ -1,22 +1,16 @@
 package net.thumbtack.sharding.example.jdbc.friends;
 
-import fj.F;
-import fj.F2;
-import net.thumbtack.sharding.Dao;
 import net.thumbtack.sharding.ShardingFacade;
 import net.thumbtack.sharding.core.query.Connection;
 import net.thumbtack.sharding.core.query.QueryClosure;
-import net.thumbtack.sharding.test.jdbc.JdbcConnection;
+import net.thumbtack.sharding.impl.jdbc.JdbcConnection;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static net.thumbtack.helper.Util.*;
 
 public class FriendsDao {
 

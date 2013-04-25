@@ -1,6 +1,7 @@
 package net.thumbtack.sharding.test.jdbc;
 
 import fj.F;
+import net.thumbtack.sharding.impl.jdbc.JdbcConnection;
 import net.thumbtack.sharding.test.common.Entity;
 import net.thumbtack.sharding.test.common.EntityDao;
 import net.thumbtack.sharding.core.query.Connection;
@@ -11,7 +12,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 import static net.thumbtack.sharding.SqlUtil.*;

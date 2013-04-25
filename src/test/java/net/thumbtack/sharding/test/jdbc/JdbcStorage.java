@@ -5,6 +5,9 @@ import net.thumbtack.sharding.ShardingFacade;
 import net.thumbtack.sharding.Storage;
 import net.thumbtack.sharding.core.*;
 import net.thumbtack.sharding.core.query.*;
+import net.thumbtack.sharding.impl.jdbc.JdbcConnection;
+import net.thumbtack.sharding.impl.jdbc.JdbcShard;
+import net.thumbtack.sharding.impl.jdbc.JdbcShardConfig;
 
 import java.sql.Connection;
 import java.util.HashMap;

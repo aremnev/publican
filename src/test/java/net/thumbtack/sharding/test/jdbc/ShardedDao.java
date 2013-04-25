@@ -1,6 +1,7 @@
 package net.thumbtack.sharding.test.jdbc;
 
 import fj.F;
+import net.thumbtack.sharding.impl.jdbc.JdbcConnection;
 import net.thumbtack.sharding.test.common.Entity;
 import net.thumbtack.sharding.test.common.EntityDao;
 import net.thumbtack.sharding.core.query.Connection;
