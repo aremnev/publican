@@ -1,7 +1,6 @@
 package net.thumbtack.helper;
 
 import fj.F;
-import fj.F2;
 
 import java.io.IOException;
 import java.io.InputStream;

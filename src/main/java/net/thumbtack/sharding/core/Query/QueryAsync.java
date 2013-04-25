@@ -187,6 +187,10 @@ public abstract class QueryAsync implements Query {
         return "";
     }
 
+    /**
+     * Sets the threadPool.
+     * @param executor The thread pool.
+     */
     public void setExecutor(ExecutorService executor) {
         this.executor = executor;
     }

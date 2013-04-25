@@ -1,7 +1,6 @@
 package net.thumbtack.sharding.core.query;
 
 import java.util.Collection;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;

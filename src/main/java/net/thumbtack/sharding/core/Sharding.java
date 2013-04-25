@@ -20,7 +20,9 @@ public class Sharding {
 
     /**
      * Constructor.
-     * @param config The general config.
+     * @param queryRegistry The query map.
+     * @param shardResolver The shard resolver.
+     * @param workThreads The number of work threads.
      */
     public Sharding(Map<Long, Query> queryRegistry, ShardResolver shardResolver, int workThreads) {
         this.queryRegistry = queryRegistry;

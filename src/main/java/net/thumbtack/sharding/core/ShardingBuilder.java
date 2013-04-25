@@ -7,33 +7,63 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The builder of {@link Sharding} object.
+ */
 public class ShardingBuilder {
 
+    private static final int DEFAULT_WORK_THREADS = 10;
+
     private ModuloKeyMapper keyMapper;
-    private int workTreads = 10;
+    private int workTreads = DEFAULT_WORK_THREADS;
     private List<Shard> shards = new ArrayList<Shard>();
     private Map<Long, Query> queryMap = new HashMap<Long, Query>();
 
+    /**
+     * Adds one more shard.
+     * @param shard The shard.
+     * @return The builder.
+     */
     public ShardingBuilder addShard(Shard shard) {
         shards.add(shard);
         return this;
     }
 
+    /**
+     * Adds one more query.
+     * @param queryId The query id.
+     * @param query The query.
+     * @return The builder.
+     */
     public ShardingBuilder addQuery(long queryId, Query query) {
         queryMap.put(queryId, query);
         return this;
     }
 
+    /**
+     * Sets key mapper.
+     * @param keyMapper The key mapper.
+     * @return The builder.
+     */
     public ShardingBuilder setKeyMapper(ModuloKeyMapper keyMapper) {
         this.keyMapper = keyMapper;
         return this;
     }
 
+    /**
+     * Sets the number of work threads.
+     * @param workTreads The number of work threads.
+     * @return The builder.
+     */
     public ShardingBuilder setWorkTreads(int workTreads) {
         this.workTreads = workTreads;
         return this;
     }
 
+    /**
+     * Builds the Sharding object.
+     * @return The Sharding object.
+     */
     public Sharding build() {
         if (keyMapper == null) {
             keyMapper = new ModuloKeyMapper(shards.size());
