@@ -16,7 +16,7 @@ public class ModuloKeyMapper implements KeyMapper {
     }
 
     @Override
-    public long shard(long key) {
-        return key % count;
+    public int shard(long key) {
+        return (int) key % count;
     }
 }

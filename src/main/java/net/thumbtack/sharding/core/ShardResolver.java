@@ -31,7 +31,7 @@ class ShardResolver {
      * @return The shard.
      */
     public Connection resolveId(long id) {
-        long shardId = keyMapper.shard(id);
+        int shardId = keyMapper.shard(id);
         Shard shard = shards.get(shardId);
         return shard.getConnection();
     }
@@ -42,9 +42,9 @@ class ShardResolver {
      * @return The shards.
      */
     public List<Connection> resolveIds(List<Long> ids) {
-        Map<Long, List<Long>> shardIds = new HashMap<Long, List<Long>>();
+        Map<Integer, List<Long>> shardIds = new HashMap<Integer, List<Long>>();
         for (long id : ids) {
-            long shardId = keyMapper.shard(id);
+            int shardId = keyMapper.shard(id);
             List<Long> cargo = shardIds.get(shardId);
             if (cargo == null) {
                 cargo = new ArrayList<Long>();
@@ -53,7 +53,7 @@ class ShardResolver {
             cargo.add(id);
         }
         List<Connection> connections = new ArrayList<Connection>(shardIds.size());
-        for (long shardId : shardIds.keySet()) {
+        for (int shardId : shardIds.keySet()) {
             Shard shard = shards.get(shardId);
             Connection connection = shard.getConnection();
             connection.setCargo(shardIds.get(shardId));

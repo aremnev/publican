@@ -10,5 +10,5 @@ public interface KeyMapper {
      * @param key The key.
      * @return The shard id.
      */
-    public long shard(long key);
+    public int shard(long key);
 }
