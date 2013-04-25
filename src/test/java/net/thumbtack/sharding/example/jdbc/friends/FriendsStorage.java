@@ -28,10 +28,6 @@ public class FriendsStorage implements Storage {
             builder.addShard(new JdbcShard(shardConfig));
         }
         builder.addQuery(SELECT_SPEC_SHARD, new SelectSpecShard()).
-                addQuery(SELECT_SHARD, new SelectShardAsync()).
-                addQuery(SELECT_ANY_SHARD, new SelectAnyShard()).
-                addQuery(SELECT_ALL_SHARDS, new SelectAllShardsAsync()).
-                addQuery(SELECT_ALL_SHARDS_SUM, new SelectAllShardsSumAsync()).
                 addQuery(UPDATE_SPEC_SHARD, new UpdateSpecShard()).
                 addQuery(UPDATE_ALL_SHARDS, new UpdateAllShardsAsync());
         sharding = new ShardingFacade(builder.build());
