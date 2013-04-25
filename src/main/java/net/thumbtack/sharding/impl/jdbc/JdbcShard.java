@@ -8,7 +8,7 @@ import net.thumbtack.sharding.core.Shard;
  */
 public class JdbcShard implements Shard {
 
-    private final long id;
+    private final int id;
     private final String driver;
     private final String url;
     private final String user;
@@ -27,7 +27,7 @@ public class JdbcShard implements Shard {
     }
 
     @Override
-    public long getId() {
+    public int getId() {
         return id;
     }
 

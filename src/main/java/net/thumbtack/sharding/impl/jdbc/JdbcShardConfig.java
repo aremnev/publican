@@ -26,15 +26,15 @@ public class JdbcShardConfig extends ShardConfig {
      * @return The list of jdbc shard configurations.
      */
     public static List<JdbcShardConfig> fromProperties(Properties props) {
-        Set<Long> shardIds = new HashSet<Long>();
+        Set<Integer> shardIds = new HashSet<Integer>();
         for (String name : props.stringPropertyNames()) {
             if (name.startsWith(SHARD)) {
-                long id = Long.parseLong(name.split("\\.")[1]);
+                int id = Integer.parseInt(name.split("\\.")[1]);
                 shardIds.add(id);
             }
         }
         List<JdbcShardConfig> result = new ArrayList<JdbcShardConfig>(shardIds.size());
-        for (long shardId : shardIds) {
+        for (int shardId : shardIds) {
             JdbcShardConfig config = new JdbcShardConfig();
             config.setId(shardId);
             config.setDriver(props.getProperty(SHARD + shardId + DRIVER));
@@ -61,7 +61,7 @@ public class JdbcShardConfig extends ShardConfig {
      * @param user The database user.
      * @param password The database password.
      */
-    public JdbcShardConfig(long id, String driver, String url, String user, String password) {
+    public JdbcShardConfig(int id, String driver, String url, String user, String password) {
         super(id);
         this.driver = driver;
         this.url = url;

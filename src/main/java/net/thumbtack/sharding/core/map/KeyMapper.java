@@ -1,4 +1,4 @@
-package net.thumbtack.sharding.core;
+package net.thumbtack.sharding.core.map;
 
 /**
  * Maps key to some shard.

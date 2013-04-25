@@ -5,7 +5,7 @@ package net.thumbtack.sharding.core;
  */
 public class ShardConfig {
 
-    private long id;
+    private int id;
 
     /**
      * Default constructor.
@@ -16,7 +16,7 @@ public class ShardConfig {
      * Constructor.
      * @param id The shardId.
      */
-    public ShardConfig(long id) {
+    public ShardConfig(int id) {
         this.id = id;
     }
 
@@ -24,7 +24,7 @@ public class ShardConfig {
      * Gets the shard id.
      * @return The shard id.
      */
-    public long getId() {
+    public int getId() {
         return id;
     }
 
@@ -32,7 +32,7 @@ public class ShardConfig {
      * Sets the shard id.
      * @param id The shard id.
      */
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
 }

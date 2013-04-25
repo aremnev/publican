@@ -1,5 +1,6 @@
 package net.thumbtack.sharding.core;
 
+import net.thumbtack.sharding.core.map.KeyMapper;
 import net.thumbtack.sharding.core.query.Connection;
 
 import java.util.*;
@@ -9,7 +10,7 @@ import java.util.*;
  */
 class ShardResolver {
 
-    private Map<Long, Shard> shards = new HashMap<Long, Shard>(0);
+    private Map<Integer, Shard> shards = new HashMap<Integer, Shard>(0);
     private KeyMapper keyMapper;
 
     /**

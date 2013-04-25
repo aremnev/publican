@@ -11,7 +11,7 @@ public interface Shard {
      * Gets the shard id.
      * @return The shard id.
      */
-    long getId();
+    int getId();
 
     /**
      * Gets the connection.
