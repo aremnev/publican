@@ -19,14 +19,6 @@ public abstract class QueryAsync implements Query {
 
     private ExecutorService executor;
 
-    /**
-     * Constructor.
-     * @param executor Service to run asynchronous jobs
-     */
-    public QueryAsync(ExecutorService executor) {
-        this.executor = executor;
-    }
-
     @Override
     public <U> U query(final QueryClosure<U> closure, List<Connection> shards) {
         final Lock lock = new ReentrantLock();
@@ -193,5 +185,9 @@ public abstract class QueryAsync implements Query {
             return sb.toString();
         }
         return "";
+    }
+
+    public void setExecutor(ExecutorService executor) {
+        this.executor = executor;
     }
 }

@@ -13,14 +13,6 @@ public class SelectAllShardsSumAsync extends QueryAsync {
 
     private static final Logger logger = LoggerFactory.getLogger("SelectAllShardsSumAsync");
 
-    /**
-     * Constructor.
-     * @param executor Service to run asynchronous jobs
-     */
-    public SelectAllShardsSumAsync(ExecutorService executor) {
-        super(executor);
-    }
-
     @SuppressWarnings("UnusedDeclaration")
     @Override
     protected <U> Object createResult() {

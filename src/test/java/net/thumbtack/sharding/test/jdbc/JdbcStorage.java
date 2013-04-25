@@ -4,30 +4,59 @@ import net.thumbtack.helper.Util;
 import net.thumbtack.sharding.ShardingFacade;
 import net.thumbtack.sharding.Storage;
 import net.thumbtack.sharding.core.*;
-import net.thumbtack.sharding.core.query.QueryClosure;
+import net.thumbtack.sharding.core.query.*;
 
 import java.sql.Connection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+
+import static net.thumbtack.sharding.ShardingFacade.*;
 
 public class JdbcStorage implements Storage {
 
     private ShardingFacade sharding;
 
-    public JdbcStorage(String queriesResource) throws Exception {
-        ShardingConfig config = new ShardingConfig();
+    public JdbcStorage(boolean isSync) throws Exception {
         Properties shardProps = new Properties();
         shardProps.load(Util.getResourceAsReader("H2-shard.properties"));
         List<JdbcShardConfig> shardConfigs = JdbcShardConfig.fromProperties(shardProps);
-        config.setShardConfigs(shardConfigs);
-        config.setShardFactory(new JdbcShardFactory());
-        config.setKeyMapper(new ModuloKeyMapper(shardConfigs.size()));
-        Properties queryProps = new Properties();
-        queryProps.load(Util.getResourceAsReader(queriesResource));
-        List<QueryConfig> queryConfigs = QueryConfig.fromProperties(queryProps);
-        config.setQueryConfigs(queryConfigs);
-        config.setWorkThreads(2);
-        sharding = new ShardingFacade(new Sharding(config));
+        ShardingBuilder builder = new ShardingBuilder();
+        for (JdbcShardConfig shardConfig : shardConfigs) {
+            builder.addShard(new JdbcShard(shardConfig));
+        }
+        Map<Long, Query> queryMap = getQueryMap(isSync);
+        for (long queryId : queryMap.keySet()) {
+            builder.addQuery(queryId, queryMap.get(queryId));
+        }
+        sharding = new ShardingFacade(builder.build());
+    }
+
+    private Map<Long, Query> getQueryMap(boolean isSync) {
+        return isSync ?
+                new HashMap<Long, Query>() {
+                    {
+                        put(SELECT_SPEC_SHARD, new SelectSpecShard());
+                        put(SELECT_SHARD, new SelectShard());
+                        put(SELECT_ANY_SHARD, new SelectAnyShard());
+                        put(SELECT_ALL_SHARDS, new SelectAllShards());
+                        put(SELECT_ALL_SHARDS_SUM, new SelectAllShardsSum());
+                        put(UPDATE_SPEC_SHARD, new UpdateSpecShard());
+                        put(UPDATE_ALL_SHARDS, new UpdateAllShards());
+                    }
+                } :
+                new HashMap<Long, Query>() {
+                    {
+                        put(SELECT_SPEC_SHARD, new SelectSpecShard());
+                        put(SELECT_SHARD, new SelectShardAsync());
+                        put(SELECT_ANY_SHARD, new SelectAnyShard());
+                        put(SELECT_ALL_SHARDS, new SelectAllShardsAsync());
+                        put(SELECT_ALL_SHARDS_SUM, new SelectAllShardsSumAsync());
+                        put(UPDATE_SPEC_SHARD, new UpdateSpecShard());
+                        put(UPDATE_ALL_SHARDS, new UpdateAllShardsAsync());
+                    }
+                };
     }
 
     @Override

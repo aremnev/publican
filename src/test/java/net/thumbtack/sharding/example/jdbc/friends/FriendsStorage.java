@@ -3,37 +3,38 @@ package net.thumbtack.sharding.example.jdbc.friends;
 import net.thumbtack.helper.Util;
 import net.thumbtack.sharding.ShardingFacade;
 import net.thumbtack.sharding.Storage;
-import net.thumbtack.sharding.core.ModuloKeyMapper;
-import net.thumbtack.sharding.core.QueryConfig;
-import net.thumbtack.sharding.core.Sharding;
-import net.thumbtack.sharding.core.ShardingConfig;
-import net.thumbtack.sharding.core.query.QueryClosure;
+import net.thumbtack.sharding.core.*;
+import net.thumbtack.sharding.core.query.*;
 import net.thumbtack.sharding.test.jdbc.JdbcConnection;
+import net.thumbtack.sharding.test.jdbc.JdbcShard;
 import net.thumbtack.sharding.test.jdbc.JdbcShardConfig;
-import net.thumbtack.sharding.test.jdbc.JdbcShardFactory;
 
 import java.sql.Connection;
 import java.util.List;
 import java.util.Properties;
+
+import static net.thumbtack.sharding.ShardingFacade.*;
 
 public class FriendsStorage implements Storage {
 
     private ShardingFacade sharding;
 
     public FriendsStorage() throws Exception {
-        ShardingConfig config = new ShardingConfig();
         Properties shardProps = new Properties();
         shardProps.load(Util.getResourceAsReader("H2-shard.properties"));
         List<JdbcShardConfig> shardConfigs = JdbcShardConfig.fromProperties(shardProps);
-        config.setShardConfigs(shardConfigs);
-        config.setShardFactory(new JdbcShardFactory());
-        config.setKeyMapper(new ModuloKeyMapper(shardConfigs.size()));
-        Properties queryProps = new Properties();
-        queryProps.load(Util.getResourceAsReader("query-async.properties"));
-        List<QueryConfig> queryConfigs = QueryConfig.fromProperties(queryProps);
-        config.setQueryConfigs(queryConfigs);
-        config.setWorkThreads(2);
-        sharding = new ShardingFacade(new Sharding(config));
+        ShardingBuilder builder = new ShardingBuilder();
+        for (JdbcShardConfig shardConfig : shardConfigs) {
+            builder.addShard(new JdbcShard(shardConfig));
+        }
+        builder.addQuery(SELECT_SPEC_SHARD, new SelectSpecShard()).
+                addQuery(SELECT_SHARD, new SelectShardAsync()).
+                addQuery(SELECT_ANY_SHARD, new SelectAnyShard()).
+                addQuery(SELECT_ALL_SHARDS, new SelectAllShardsAsync()).
+                addQuery(SELECT_ALL_SHARDS_SUM, new SelectAllShardsSumAsync()).
+                addQuery(UPDATE_SPEC_SHARD, new UpdateSpecShard()).
+                addQuery(UPDATE_ALL_SHARDS, new UpdateAllShardsAsync());
+        sharding = new ShardingFacade(builder.build());
     }
 
     @Override

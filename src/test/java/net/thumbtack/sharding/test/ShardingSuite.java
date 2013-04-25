@@ -18,8 +18,8 @@ public class ShardingSuite {
 
 
     public ShardingSuite() throws Exception {
-        jdbcStorageAsync = new JdbcStorage("query-async.properties");
-        jdbcStorageSync = new JdbcStorage("query-sync.properties");
+        jdbcStorageAsync = new JdbcStorage(false);
+        jdbcStorageSync = new JdbcStorage(true);
     }
 
     public void start() throws Exception {

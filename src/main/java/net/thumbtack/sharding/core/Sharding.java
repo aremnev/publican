@@ -1,8 +1,11 @@
 package net.thumbtack.sharding.core;
 
+import net.thumbtack.helper.NamedThreadFactory;
 import net.thumbtack.sharding.core.query.*;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * The main entry point into the library. It provides the interface to execution of queries.
@@ -13,21 +16,21 @@ public class Sharding {
 
     private ShardResolver shardResolver;
 
-    private QueryRegistry queryRegistry;
+    private Map<Long, Query> queryRegistry;
 
     /**
      * Constructor.
      * @param config The general config.
      */
-    public Sharding(ShardingConfig config) {
-        List<? extends ShardConfig> shardConfigs = config.getShardConfigs();
-        ShardFactory shardFactory = config.getShardFactory();
-        List<Shard> shards = new ArrayList<Shard>(config.getShardConfigs().size());
-        for (ShardConfig shardConfig : shardConfigs) {
-            shards.add(shardFactory.createShard(shardConfig));
+    public Sharding(Map<Long, Query> queryRegistry, ShardResolver shardResolver, int workThreads) {
+        this.queryRegistry = queryRegistry;
+        this.shardResolver = shardResolver;
+        ExecutorService executor = Executors.newFixedThreadPool(workThreads, new NamedThreadFactory("query"));
+        for (Query query : queryRegistry.values()) {
+            if (query instanceof QueryAsync) {
+                ((QueryAsync) query).setExecutor(executor);
+            }
         }
-        shardResolver = new ShardResolver(shards, config.getKeyMapper());
-        queryRegistry = new QueryRegistry(config);
     }
 
     /**

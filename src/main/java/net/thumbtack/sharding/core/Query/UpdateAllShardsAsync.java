@@ -14,14 +14,6 @@ public class UpdateAllShardsAsync extends QueryAsync {
 
     private static final Logger logger = LoggerFactory.getLogger("UpdateAllShardsAsync");
 
-    /**
-     * Constructor.
-     * @param executor Service to run asynchronous jobs
-     */
-    public UpdateAllShardsAsync(ExecutorService executor) {
-        super(executor);
-    }
-
     @Override
     protected <U> void logErrors(List<QueryError> errors, U resultValue) {
         if (!errors.isEmpty()) {

@@ -13,14 +13,6 @@ public class SelectAllShardsAsync extends QueryAsync {
 
     private static final Logger logger = LoggerFactory.getLogger("SelectAllShardsAsync");
 
-    /**
-     * Constructor.
-     * @param executor Service to run asynchronous jobs
-     */
-    public SelectAllShardsAsync(ExecutorService executor) {
-        super(executor);
-    }
-
     @Override
     protected <U> Object createResult() {
         return new ArrayList<Object>();
