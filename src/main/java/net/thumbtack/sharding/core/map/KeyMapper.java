@@ -1,4 +1,4 @@
-package net.thumbtack.sharding.core;
+package net.thumbtack.sharding.core.map;
 
 /**
  * Maps key to some shard.
@@ -10,5 +10,5 @@ public interface KeyMapper {
      * @param key The key.
      * @return The shard id.
      */
-    public long shard(long key);
+    public int shard(long key);
 }

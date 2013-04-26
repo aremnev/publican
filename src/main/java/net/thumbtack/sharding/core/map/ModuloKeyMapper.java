@@ -1,4 +1,4 @@
-package net.thumbtack.sharding.core;
+package net.thumbtack.sharding.core.map;
 
 /**
  * Maps key to shard by modulo algorithm.
@@ -16,7 +16,7 @@ public class ModuloKeyMapper implements KeyMapper {
     }
 
     @Override
-    public long shard(long key) {
-        return key % count;
+    public int shard(long key) {
+        return (int) key % count;
     }
 }
