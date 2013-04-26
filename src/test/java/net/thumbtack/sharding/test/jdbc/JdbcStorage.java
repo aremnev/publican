@@ -7,7 +7,6 @@ import net.thumbtack.sharding.core.*;
 import net.thumbtack.sharding.core.query.*;
 import net.thumbtack.sharding.impl.jdbc.JdbcConnection;
 import net.thumbtack.sharding.impl.jdbc.JdbcShard;
-import net.thumbtack.sharding.impl.jdbc.JdbcShardConfig;
 
 import java.sql.Connection;
 import java.util.HashMap;
@@ -24,10 +23,10 @@ public class JdbcStorage implements Storage {
     public JdbcStorage(boolean isSync) throws Exception {
         Properties shardProps = new Properties();
         shardProps.load(Util.getResourceAsReader("H2-shard.properties"));
-        List<JdbcShardConfig> shardConfigs = JdbcShardConfig.fromProperties(shardProps);
+        List<JdbcShard> shards = JdbcShard.fromProperties(shardProps);
         ShardingBuilder builder = new ShardingBuilder();
-        for (JdbcShardConfig shardConfig : shardConfigs) {
-            builder.addShard(new JdbcShard(shardConfig));
+        for (JdbcShard shard : shards) {
+            builder.addShard(shard);
         }
         Map<Long, Query> queryMap = getQueryMap(isSync);
         for (long queryId : queryMap.keySet()) {
