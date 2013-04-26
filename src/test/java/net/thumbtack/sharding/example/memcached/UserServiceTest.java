@@ -1,13 +1,14 @@
 package net.thumbtack.sharding.example.memcached;
 
+import net.thumbtack.sharding.test.MemcachedSuite;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.*;
 
 public class UserServiceTest {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceTest.class);
@@ -15,6 +16,8 @@ public class UserServiceTest {
     private UserService userService;
     private UserDao userDao;
     private UserStorage userStorage;
+
+    private static MemcachedSuite memcachedSuite;
 
     public UserServiceTest() throws Exception {
         userStorage = new UserStorage();
@@ -59,6 +62,19 @@ public class UserServiceTest {
         userService.delete(1);
         user = userService.select(1);
         assertNull(user);
+    }
+
+    @BeforeClass
+    public static void startEmbeddedMemcached() throws Exception {
+        memcachedSuite = new MemcachedSuite();
+        memcachedSuite.start();
+//        return null;
+    }
+
+    @AfterClass
+    public static void cleanup() throws Exception {
+        if (memcachedSuite != null)
+            memcachedSuite.stop();
     }
 
 }
