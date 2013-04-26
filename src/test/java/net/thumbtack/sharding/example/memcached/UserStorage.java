@@ -9,14 +9,9 @@ import net.thumbtack.sharding.core.query.QueryClosure;
 import net.thumbtack.sharding.core.query.SelectSpecShard;
 import net.thumbtack.sharding.core.query.UpdateAllShardsAsync;
 import net.thumbtack.sharding.core.query.UpdateSpecShard;
-import net.thumbtack.sharding.impl.jdbc.JdbcConnection;
-import net.thumbtack.sharding.impl.jdbc.JdbcShard;
-import net.thumbtack.sharding.impl.jdbc.JdbcShardConfig;
 import net.thumbtack.sharding.impl.memcached.MemcachedConnection;
 import net.thumbtack.sharding.impl.memcached.MemcachedShard;
-import net.thumbtack.sharding.impl.memcached.MemcachedShardConfig;
 
-import java.sql.Connection;
 import java.util.List;
 import java.util.Properties;
 
@@ -29,10 +24,10 @@ public class UserStorage implements Storage {
     public UserStorage() throws Exception {
         Properties shardProps = new Properties();
         shardProps.load(Util.getResourceAsReader("memcached.properties"));
-        List<MemcachedShardConfig> shardConfigs = MemcachedShardConfig.fromProperties(shardProps);
+        List<MemcachedShard> shards = MemcachedShard.fromProperties(shardProps);
         ShardingBuilder builder = new ShardingBuilder();
-        for (MemcachedShardConfig shardConfig : shardConfigs) {
-            builder.addShard(new MemcachedShard(shardConfig));
+        for (MemcachedShard shard : shards) {
+            builder.addShard(shard);
         }
         builder.addQuery(SELECT_SPEC_SHARD, new SelectSpecShard()).
                 addQuery(UPDATE_SPEC_SHARD, new UpdateSpecShard()).

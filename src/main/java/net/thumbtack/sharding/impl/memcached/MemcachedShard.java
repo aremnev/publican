@@ -3,33 +3,57 @@ package net.thumbtack.sharding.impl.memcached;
 import net.thumbtack.sharding.core.Shard;
 import net.thumbtack.sharding.core.query.Connection;
 
+import java.util.*;
+
 /**
  * The jdbc shard.
  */
 public class MemcachedShard implements Shard {
 
-    private final long id;
+    private static final String SHARD = "shard.";
+    private static final String HOST = ".host";
+    private static final String PORT = ".port";
+
+    private final int id;
     private String host;
     private int port;
 
-    /**
-     * Constructor.
-     * @param config The jdbc shard configuration.
-     */
-    public MemcachedShard(MemcachedShardConfig config) {
-        this.id = config.getId();
-        this.host = config.getHost();
-        this.port = config.getPort();
+    public MemcachedShard(int id, String host, int port) {
+        this.id = id;
+        this.host = host;
+        this.port = port;
     }
 
     @Override
-    public long getId() {
+    public int getId() {
         return id;
     }
 
     @Override
     public Connection getConnection() {
         return new MemcachedConnection(host, port);
+    }
+
+    /**
+     * Builds list of jdbc shard configurations from properties.
+     * @param props The properties.
+     * @return The list of jdbc shard configurations.
+     */
+    public static List<MemcachedShard> fromProperties(Properties props) {
+        Set<Integer> shardIds = new HashSet<Integer>();
+        for (String name : props.stringPropertyNames()) {
+            if (name.startsWith(SHARD)) {
+                int id = Integer.parseInt(name.split("\\.")[1]);
+                shardIds.add(id);
+            }
+        }
+        List<MemcachedShard> result = new ArrayList<MemcachedShard>(shardIds.size());
+        for (int shardId : shardIds) {
+            String host = props.getProperty(SHARD + shardId + HOST);
+            int port = Integer.parseInt(props.getProperty(SHARD + shardId + PORT));
+            result.add(new MemcachedShard(shardId, host, port));
+        }
+        return result;
     }
 
     @Override
