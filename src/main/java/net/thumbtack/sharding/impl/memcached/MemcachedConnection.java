@@ -5,21 +5,37 @@ import net.rubyeye.xmemcached.XMemcachedClient;
 import net.thumbtack.sharding.core.query.Connection;
 
 import java.io.IOException;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 
 /**
  * Encapsulates the memcached client.
  */
 public class MemcachedConnection extends Connection {
+
+    /**
+     * the memcached server url.
+     */
     private String host;
+
+    /**
+     * the memcached server port.
+     */
     private int port;
 
+    /**
+     * the the instance of MemcachedClient.
+     */
+    private MemcachedClient client;
+
+
+    /**
+     *
+     * @return the MemcachedClient.
+     */
     public MemcachedClient getClient() {
         return client;
     }
 
-    private MemcachedClient client;
+
 
     /**
      * Constructor.

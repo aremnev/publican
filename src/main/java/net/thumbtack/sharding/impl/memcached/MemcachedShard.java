@@ -18,6 +18,12 @@ public class MemcachedShard implements Shard {
     private String host;
     private int port;
 
+    /**
+     * The constructor.
+     * @param id the id of shard.
+     * @param host the memcached server url.
+     * @param port the memcached server port.
+     */
     public MemcachedShard(int id, String host, int port) {
         this.id = id;
         this.host = host;
