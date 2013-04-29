@@ -1,5 +1,8 @@
 package net.thumbtack.sharding.core.map;
 
+/**
+ * State of the bucket on the shard.
+ */
 public enum VbucketState {
     /**
      * This server is servicing all requests for this vbucket.
