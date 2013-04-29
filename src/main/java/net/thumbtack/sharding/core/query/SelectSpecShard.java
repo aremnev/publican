@@ -32,4 +32,9 @@ public class SelectSpecShard implements Query {
         }
         return result;
     }
+
+    @Override
+    public boolean isUpdate() {
+        return false;
+    }
 }

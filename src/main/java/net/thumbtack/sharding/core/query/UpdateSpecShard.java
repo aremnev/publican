@@ -35,4 +35,9 @@ public class UpdateSpecShard implements Query {
         }
         return result;
     }
+
+    @Override
+    public boolean isUpdate() {
+        return true;
+    }
 }

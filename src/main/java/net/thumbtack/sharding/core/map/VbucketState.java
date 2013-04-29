@@ -13,10 +13,6 @@ public enum VbucketState {
      */
     dead,
     /**
-     * No client requests are handled for this vbucket, but it can receive replication commands.
-     */
-    replica,
-    /**
      * This server will block all requests for this vbucket.
      */
     pending

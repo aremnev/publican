@@ -36,4 +36,9 @@ public class SelectAllShardsSum implements Query {
         }
         return (U) result;
     }
+
+    @Override
+    public boolean isUpdate() {
+        return false;
+    }
 }
