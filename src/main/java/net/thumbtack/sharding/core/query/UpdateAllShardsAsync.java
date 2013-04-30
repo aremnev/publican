@@ -14,16 +14,16 @@ public class UpdateAllShardsAsync extends QueryAsync {
     private static final Logger logger = LoggerFactory.getLogger("UpdateAllShardsAsync");
 
     @Override
+    public boolean isUpdate() {
+        return true;
+    }
+
+    @Override
     protected <U> void logErrors(List<QueryError> errors, U resultValue) {
         if (!errors.isEmpty()) {
             logger.error("SHARDS CAN BE OUT OF SYNC. See further logged error.");
         }
         super.logErrors(errors, resultValue);
-    }
-
-    @Override
-    protected boolean doCommit() {
-        return true;
     }
 
     @Override

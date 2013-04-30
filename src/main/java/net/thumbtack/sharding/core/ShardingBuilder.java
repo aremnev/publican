@@ -1,5 +1,6 @@
 package net.thumbtack.sharding.core;
 
+import fj.F;
 import net.thumbtack.sharding.core.map.ModuloKeyMapper;
 import net.thumbtack.sharding.core.query.Query;
 
@@ -7,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static net.thumbtack.helper.Util.*;
 
 /**
  * The builder of {@link Sharding} object.
@@ -67,7 +70,12 @@ public class ShardingBuilder {
      */
     public Sharding build() {
         if (keyMapper == null) {
-            keyMapper = new ModuloKeyMapper(shards.size());
+            keyMapper = new ModuloKeyMapper(map(shards, new F<Shard, Integer>() {
+                @Override
+                public Integer f(Shard shard) {
+                    return shard.getId();
+                }
+            }));
         }
         ShardResolver shardResolver = new ShardResolver(shards, keyMapper);
         return new Sharding(queryMap, shardResolver, workTreads);

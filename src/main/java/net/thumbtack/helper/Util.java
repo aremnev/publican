@@ -32,6 +32,17 @@ public class Util {
     }
 
     /**
+     * Get random element from the array.
+     * @param random The random to use.
+     * @param array The array to choose from.
+     * @param <T> The type of elements.
+     * @return The chosen element.
+     */
+    public static <T> T getRandom(Random random, T[] array) {
+        return array[random.nextInt(array.length)];
+    }
+
+    /**
      * Finds and reads resource into a string.
      *
      * @param resource The resource to find.

@@ -37,4 +37,9 @@ public class SelectAllShards implements Query {
         }
         return (U) result;
     }
+
+    @Override
+    public boolean isUpdate() {
+        return false;
+    }
 }

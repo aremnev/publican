@@ -1,22 +1,24 @@
 package net.thumbtack.sharding.core.map;
 
+import java.util.List;
+
 /**
  * Maps key to shard by modulo algorithm.
  */
 public class ModuloKeyMapper implements KeyMapper {
 
-    private int count;
+    private List<Integer> shardsIds;
 
     /**
      * Constructor.
-     * @param count count of shards.
+     * @param shardsIds The shards.
      */
-    public ModuloKeyMapper(int count) {
-        this.count = count;
+    public ModuloKeyMapper(List<Integer> shardsIds) {
+        this.shardsIds = shardsIds;
     }
 
     @Override
     public int shard(long key) {
-        return (int) key % count;
+        return shardsIds.get((int) key % shardsIds.size());
     }
 }

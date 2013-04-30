@@ -53,11 +53,11 @@ public abstract class QueryAsync implements Query {
                     U res = null;
                     try {
                         res = closure.call(connection);
-                        if (doCommit()) {
+                        if (isUpdate()) {
                             connection.commit();
                         }
                     } catch (Throwable t) {
-                        if (doCommit()) {
+                        if (isUpdate()) {
                             connection.rollback();
                         }
                         errors.add(new QueryError(connection.toString(), t, currentThread.getStackTrace()));
@@ -99,6 +99,11 @@ public abstract class QueryAsync implements Query {
         return resultValue;
     }
 
+    @Override
+    public boolean isUpdate() {
+        return false;
+    }
+
     /**
      * Invokes when some errors occurred during query execution. Can be used to log some additional information.
      * @param errors The errors which occurred.
@@ -107,14 +112,6 @@ public abstract class QueryAsync implements Query {
      */
     protected <U> void logErrors(List<QueryError> errors, U resultValue) {
         logErrors(logger(), resultValue, errors);
-    }
-
-    /**
-     * Do connection.commit() after query execution or not.
-     * @return true if positive
-     */
-    protected boolean doCommit() {
-        return false;
     }
 
     /**
