@@ -1,7 +1,6 @@
 package net.thumbtack.sharding.example.jdbc.friends;
 
 import au.com.bytecode.opencsv.CSVReader;
-import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -13,7 +12,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static junit.framework.Assert.*;
-import static net.thumbtack.helper.Util.*;
+import static net.thumbtack.helper.Util.getResourceAsReader;
 
 public class FriendsServiceTest {
 

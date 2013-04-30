@@ -1,29 +1,29 @@
-package net.thumbtack.sharding.test.jdbc;
+package net.thumbtack.sharding.test.memcached;
 
+import net.rubyeye.xmemcached.MemcachedClient;
 import net.thumbtack.helper.Util;
 import net.thumbtack.sharding.ShardingFacade;
 import net.thumbtack.sharding.core.ShardingBuilder;
 import net.thumbtack.sharding.core.query.Query;
 import net.thumbtack.sharding.core.query.QueryClosure;
-import net.thumbtack.sharding.impl.jdbc.JdbcConnection;
-import net.thumbtack.sharding.impl.jdbc.JdbcShard;
+import net.thumbtack.sharding.impl.memcached.MemcachedConnection;
+import net.thumbtack.sharding.impl.memcached.MemcachedShard;
 import net.thumbtack.sharding.test.common.AbstractStorage;
 
-import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-public class JdbcStorage extends AbstractStorage {
+public class MemcachedStorage extends AbstractStorage {
 
     private ShardingFacade sharding;
 
-    public JdbcStorage(boolean isSync) throws Exception {
+    public MemcachedStorage(boolean isSync) throws Exception {
         Properties shardProps = new Properties();
-        shardProps.load(Util.getResourceAsReader("H2-shard.properties"));
-        List<JdbcShard> shards = JdbcShard.fromProperties(shardProps);
+        shardProps.load(Util.getResourceAsReader("memcached.properties"));
+        List<MemcachedShard> shards = MemcachedShard.fromProperties(shardProps);
         ShardingBuilder builder = new ShardingBuilder();
-        for (JdbcShard shard : shards) {
+        for (MemcachedShard shard : shards) {
             builder.addShard(shard);
         }
         Map<Long, Query> queryMap = getQueryMap(isSync);
@@ -38,9 +38,9 @@ public class JdbcStorage extends AbstractStorage {
         sharding.updateAll(new QueryClosure<Object>() {
             @Override
             public Object call(net.thumbtack.sharding.core.query.Connection connection) throws Exception {
-                Connection sqlConn = ((JdbcConnection) connection).getConnection();
-                String sql = Util.readResource("initialize.sql");
-                sqlConn.createStatement().execute(sql);
+                MemcachedClient memcachedClient  = ((MemcachedConnection) connection).getClient();
+//                return memcachedClient.delete(String.valueOf(userId));
+                // todo clear memcashed server.
                 return null;
             }
         });

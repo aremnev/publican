@@ -1,8 +1,9 @@
 package net.thumbtack.sharding.test.common;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class Entity {
+public class Entity implements Serializable {
     public long id;
     public String text;
     public Date date;

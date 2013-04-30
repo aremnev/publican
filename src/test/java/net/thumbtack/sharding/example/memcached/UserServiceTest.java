@@ -1,7 +1,6 @@
 package net.thumbtack.sharding.example.memcached;
 
-import net.thumbtack.sharding.test.MemcachedSuite;
-import org.junit.AfterClass;
+import net.thumbtack.sharding.test.ShardingSuite;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -16,8 +15,6 @@ public class UserServiceTest {
     private UserService userService;
     private UserDao userDao;
     private UserStorage userStorage;
-
-    private static MemcachedSuite memcachedSuite;
 
     public UserServiceTest() throws Exception {
         userStorage = new UserStorage();
@@ -66,15 +63,7 @@ public class UserServiceTest {
 
     @BeforeClass
     public static void startEmbeddedMemcached() throws Exception {
-        memcachedSuite = new MemcachedSuite();
-        memcachedSuite.start();
-//        return null;
+        ShardingSuite shardingSuite = ShardingSuite.getInstance();
+        shardingSuite.start();
     }
-
-    @AfterClass
-    public static void cleanup() throws Exception {
-        if (memcachedSuite != null)
-            memcachedSuite.stop();
-    }
-
 }
