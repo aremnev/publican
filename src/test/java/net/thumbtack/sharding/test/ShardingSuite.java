@@ -5,6 +5,7 @@ import net.thumbtack.sharding.MemcachedServer;
 import net.thumbtack.sharding.Storage;
 import net.thumbtack.sharding.test.jdbc.JdbcStorage;
 import net.thumbtack.sharding.test.memcached.MemcachedStorage;
+import net.thumbtack.sharding.test.redis.RedisStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +20,9 @@ public class ShardingSuite {
 
     public Storage memcachedStorageAsync;
     public Storage memcachedStorageSync;
+
+    public Storage redisStorageAsync;
+    public Storage redisStorageSync;
 
     MemcachedServer memcachedServer1 = new MemcachedServer(11212);
     MemcachedServer memcachedServer2 = new MemcachedServer(11213);
@@ -40,6 +44,8 @@ public class ShardingSuite {
         jdbcStorageSync = new JdbcStorage(true);
         memcachedStorageAsync = new MemcachedStorage(false);
         memcachedStorageSync = new MemcachedStorage(true);
+        redisStorageAsync = new RedisStorage(false);
+        redisStorageSync = new RedisStorage(true);
     }
 
     static public ShardingSuite getInstance() {

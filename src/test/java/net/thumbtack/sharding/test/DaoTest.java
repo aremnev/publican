@@ -7,6 +7,7 @@ import net.thumbtack.sharding.test.common.Entity;
 import net.thumbtack.sharding.test.jdbc.CommonDao;
 import net.thumbtack.sharding.test.jdbc.ShardedDao;
 import net.thumbtack.sharding.test.memcached.MemcachedDao;
+import net.thumbtack.sharding.test.redis.RedisDao;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -228,6 +229,8 @@ public class DaoTest extends ShardingTest {
         params.add(new Object[] {shardingSuite.jdbcStorageSync, new ShardedDao(shardingSuite.jdbcStorageSync.sharding()), createInserted(), createNotInserted(), entityId});
         params.add(new Object[] {shardingSuite.memcachedStorageAsync, new MemcachedDao(shardingSuite.memcachedStorageAsync.sharding()), createInserted(), createNotInserted(), entityId});
         params.add(new Object[] {shardingSuite.memcachedStorageSync, new MemcachedDao(shardingSuite.memcachedStorageSync.sharding()), createInserted(), createNotInserted(), entityId});
+        params.add(new Object[] {shardingSuite.redisStorageAsync, new RedisDao(shardingSuite.redisStorageAsync.sharding()), createInserted(), createNotInserted(), entityId});
+        params.add(new Object[] {shardingSuite.redisStorageSync, new RedisDao(shardingSuite.redisStorageSync.sharding()), createInserted(), createNotInserted(), entityId});
 
         return params;
     }
