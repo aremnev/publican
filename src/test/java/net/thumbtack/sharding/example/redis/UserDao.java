@@ -36,12 +36,16 @@ public class UserDao {
         return sharding.selectSpec(userId, new QueryClosure<User>() {
             @Override
             public User call(Connection connection) throws Exception {
+                User result = null;
                 Jedis jedis = ((RedisConnection) connection).getClient();
                 String keyName = "Entity:" + userId + ":name";
                 String keyAge = "Entity:" + userId + ":age";
                 String name = jedis.get(keyName);
-                int age = Integer.valueOf(jedis.get(keyAge));
-                return new User(name, age);
+                String strAge = jedis.get(keyAge);
+                if ((name != null) && (strAge != null)) {
+                    result = new User(name, Integer.valueOf(strAge));
+                }
+                return result;
             }
         });
     }

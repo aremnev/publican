@@ -2,26 +2,15 @@ package net.thumbtack.sharding.impl.redis;
 
 import net.thumbtack.sharding.core.query.Connection;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 /**
  * Encapsulates the memcached client.
  */
 public class RedisConnection extends Connection {
 
-    /**
-     * the memcached server url.
-     */
-    private String host;
-
-    /**
-     * the memcached server port.
-     */
-    private int port;
-
-    /**
-     * the the instance of MemcachedClient.
-     */
-    private Jedis client;
+    private JedisPool jedisPool;
+    private Jedis jedis;
 
 
     /**
@@ -29,24 +18,25 @@ public class RedisConnection extends Connection {
      * @return the MemcachedClient.
      */
     public Jedis getClient() {
-        return client;
+        return jedis;
     }
 
 
 
     /**
      * Constructor.
-     * @param host The url to memcached server.
-     * @param port The port of memcached server.
+     * @param jedisPool The jedisPool.
      */
-    public RedisConnection(String host, int port) {
-        this.host = host;
-        this.port = port;
-        client = new Jedis(host, port);
+    public RedisConnection(JedisPool jedisPool) {
+        this.jedisPool = jedisPool;
     }
 
     @Override
     public void open() {
+        if (jedis != null) {
+            throw new RuntimeException("Connection already is opened.");
+        }
+        jedis = jedisPool.getResource();
     }
 
     @Override
@@ -61,15 +51,16 @@ public class RedisConnection extends Connection {
 
     @Override
     public void close() {
-
+        if (jedisPool != null) {
+            jedisPool.returnResource(jedis);
+        }
     }
 
 
     @Override
     public String toString() {
         return "RedisConnection{" +
-                "host='" + host + '\'' +
-                ", port='" + port + '\'' +
+                "jedis='" + jedis + '\'' +
                 '}';
     }
 }

@@ -2,6 +2,8 @@ package net.thumbtack.sharding.impl.redis;
 
 import net.thumbtack.sharding.core.Shard;
 import net.thumbtack.sharding.core.query.Connection;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -17,10 +19,15 @@ public class RedisShard implements Shard {
     private static final String SHARD = "shard.";
     private static final String HOST = ".host";
     private static final String PORT = ".port";
+    private static final int MAX_ACTIVE = 20;
+    private static final int MAX_IDLE = 5;
+    private static final int MIN_IDLE = 5;
+    private static final int NUM_TESTS_PER_EVICTION_RUN = 10;
+    private static final int TIME_BETWEEN_EVICTION_RUNS_MILLIS = 10000;
 
     private final int id;
-    private String host;
-    private int port;
+
+    private JedisPool jedisPool;
 
     /**
      * The constructor.
@@ -30,8 +37,7 @@ public class RedisShard implements Shard {
      */
     public RedisShard(int id, String host, int port) {
         this.id = id;
-        this.host = host;
-        this.port = port;
+        setup(host, port);
     }
 
     @Override
@@ -41,7 +47,7 @@ public class RedisShard implements Shard {
 
     @Override
     public Connection getConnection() {
-        return new RedisConnection(host, port);
+        return new RedisConnection(jedisPool);
     }
 
     /**
@@ -66,12 +72,24 @@ public class RedisShard implements Shard {
         return result;
     }
 
+    private void setup(String host, int port) {
+        JedisPoolConfig poolConfig = new JedisPoolConfig();
+        poolConfig.setMaxActive(MAX_ACTIVE);
+        poolConfig.setTestOnBorrow(true);
+        poolConfig.setTestOnReturn(true);
+        poolConfig.setMaxIdle(MAX_IDLE);
+        poolConfig.setMinIdle(MIN_IDLE);
+        poolConfig.setTestWhileIdle(true);
+        poolConfig.setNumTestsPerEvictionRun(NUM_TESTS_PER_EVICTION_RUN);
+        poolConfig.setTimeBetweenEvictionRunsMillis(TIME_BETWEEN_EVICTION_RUNS_MILLIS);
+        jedisPool = new JedisPool(poolConfig, host, port);
+    }
+
     @Override
     public String toString() {
         return "RedisShard{" +
                 "id=" + id +
-                ", host='" + host + '\'' +
-                ", port='" + port + '\'' +
+                ", jedisPool='" + jedisPool + '\'' +
                 '}';
     }
 }
