@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  *
  */
-public class VbucketConfig {
+public class VbucketMapperBuilder {
 
     private int bucketsCount;
 
@@ -15,7 +15,7 @@ public class VbucketConfig {
      */
     private Map<Integer, Integer> bucket2shardMap;
 
-    public VbucketConfig(Map<Integer, List<VbucketState[]>> shardsState) {
+    public VbucketMapperBuilder(Map<Integer, List<VbucketState[]>> shardsState) {
 
         this.bucketsCount = bucketsCount;
         this.bucket2shardMap = bucket2shardMap;
