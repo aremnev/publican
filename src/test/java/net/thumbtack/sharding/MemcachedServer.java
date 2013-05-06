@@ -42,10 +42,11 @@ public class MemcachedServer {
 
     public void start() throws SQLException {
         daemon.start();
+        logger.debug("Memcached server started");
     }
 
     public void stop() {
         daemon.stop();
-        logger.debug("Database server stopped");
+        logger.debug("Memcached server stopped");
     }
 }

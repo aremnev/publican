@@ -1,8 +1,13 @@
 package net.thumbtack.sharding.impl.memcached;
 
+import net.rubyeye.xmemcached.MemcachedClient;
+import net.rubyeye.xmemcached.XMemcachedClient;
 import net.thumbtack.sharding.core.Shard;
 import net.thumbtack.sharding.core.query.Connection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -10,13 +15,15 @@ import java.util.*;
  */
 public class MemcachedShard implements Shard {
 
+    private static final Logger logger = LoggerFactory.getLogger(MemcachedShard.class);
+
     private static final String SHARD = "shard.";
     private static final String HOST = ".host";
     private static final String PORT = ".port";
 
     private final int id;
-    private String host;
-    private int port;
+
+    private MemcachedClient memcachedClient;
 
     /**
      * The constructor.
@@ -26,8 +33,12 @@ public class MemcachedShard implements Shard {
      */
     public MemcachedShard(int id, String host, int port) {
         this.id = id;
-        this.host = host;
-        this.port = port;
+        try {
+            memcachedClient = new XMemcachedClient(host, port);
+        } catch (IOException e) {
+            logger.error("", e);
+        }
+
     }
 
     @Override
@@ -37,7 +48,7 @@ public class MemcachedShard implements Shard {
 
     @Override
     public Connection getConnection() {
-        return new MemcachedConnection(host, port);
+        return new MemcachedConnection(memcachedClient);
     }
 
     /**
@@ -66,8 +77,7 @@ public class MemcachedShard implements Shard {
     public String toString() {
         return "MemcachedShard{" +
                 "id=" + id +
-                ", host='" + host + '\'' +
-                ", port='" + port + '\'' +
+                ", memcachedClient='" + memcachedClient + '\'' +
                 '}';
     }
 }

@@ -13,7 +13,7 @@ public class ShardingSuite {
 
     private static final Logger logger = LoggerFactory.getLogger(ShardingSuite.class);
 
-    H2Server h2Server = new H2Server();
+    private static H2Server h2Server;
 
     public Storage jdbcStorageAsync;
     public Storage jdbcStorageSync;
@@ -24,8 +24,8 @@ public class ShardingSuite {
     public Storage redisStorageAsync;
     public Storage redisStorageSync;
 
-    MemcachedServer memcachedServer1 = new MemcachedServer(11212);
-    MemcachedServer memcachedServer2 = new MemcachedServer(11213);
+    private static MemcachedServer memcachedServer1 = new MemcachedServer(11212);
+    private static MemcachedServer memcachedServer2 = new MemcachedServer(11213);
 
     private static ShardingSuite instance;
 
@@ -37,9 +37,13 @@ public class ShardingSuite {
         }
     }
 
-    private boolean started;
+    private static boolean started;
 
     private ShardingSuite() throws Exception {
+
+    }
+
+    private void initStorages() throws Exception {
         jdbcStorageAsync = new JdbcStorage(false);
         jdbcStorageSync = new JdbcStorage(true);
         memcachedStorageAsync = new MemcachedStorage(false);
@@ -54,10 +58,12 @@ public class ShardingSuite {
 
     synchronized public void start() throws Exception {
         if (!started) {
+            h2Server = new H2Server();
             h2Server.start();
             memcachedServer1.start();
             memcachedServer2.start();
             logger.debug("embedded db server started");
+            initStorages();
             started = true;
         }
     }
