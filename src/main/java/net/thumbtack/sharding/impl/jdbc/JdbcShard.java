@@ -1,14 +1,32 @@
 package net.thumbtack.sharding.impl.jdbc;
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 import net.thumbtack.sharding.core.query.Connection;
 import net.thumbtack.sharding.core.Shard;
 
+import javax.sql.DataSource;
+import java.beans.PropertyVetoException;
 import java.util.*;
 
 /**
  * The jdbc shard.
  */
 public class JdbcShard implements Shard {
+
+    /**
+     * the min pool size.
+     */
+    private static final int MIN_POOL_SIZE = 5;
+
+    /**
+     * the acquire increment.
+     */
+    private static final int ACQUIRE_INCREMENT = 5;
+
+    /**
+     * the max pool size.
+     */
+    private static final int MAX_POOL_SIZE = 20;
 
     private static final String SHARD = "shard.";
     private static final String DRIVER = ".driver";
@@ -17,10 +35,9 @@ public class JdbcShard implements Shard {
     private static final String PASSWORD = ".password";
 
     private final int id;
-    private final String driver;
-    private final String url;
-    private final String user;
-    private final String password;
+
+
+    private DataSource dataSource;
 
     /**
      * Builds list of jdbc shard configurations from properties.
@@ -56,10 +73,7 @@ public class JdbcShard implements Shard {
      */
     public JdbcShard(int id, String driver, String url, String user, String password) {
         this.id = id;
-        this.driver = driver;
-        this.url = url;
-        this.user = user;
-        this.password = password;
+        dataSource =  setupDataSource(driver, url, user, password);
     }
 
     @Override
@@ -69,15 +83,30 @@ public class JdbcShard implements Shard {
 
     @Override
     public Connection getConnection() {
-        return new JdbcConnection(driver, url, user, password);
+        return new JdbcConnection(dataSource);
+    }
+
+    private static DataSource setupDataSource(String driver, String url, String user, String password) {
+        ComboPooledDataSource cpds = new ComboPooledDataSource();
+        try {
+            cpds.setDriverClass(driver);
+        } catch (PropertyVetoException e) {
+            e.printStackTrace();
+        }
+        cpds.setJdbcUrl(url);
+        cpds.setUser(user);
+        cpds.setPassword(password);
+        cpds.setMinPoolSize(MIN_POOL_SIZE);
+        cpds.setAcquireIncrement(ACQUIRE_INCREMENT);
+        cpds.setMaxPoolSize(MAX_POOL_SIZE);
+        return cpds;
     }
 
     @Override
     public String toString() {
         return "JdbcShard{" +
                 "id=" + id +
-                ", url='" + url + '\'' +
-                ", driver='" + driver + '\'' +
+                ", dataSource='" + dataSource + '\'' +
                 '}';
     }
 }

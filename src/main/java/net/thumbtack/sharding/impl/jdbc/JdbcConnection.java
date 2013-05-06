@@ -2,7 +2,7 @@ package net.thumbtack.sharding.impl.jdbc;
 
 import net.thumbtack.sharding.core.query.Connection;
 
-import java.sql.DriverManager;
+import javax.sql.DataSource;
 import java.sql.SQLException;
 
 /**
@@ -11,23 +11,14 @@ import java.sql.SQLException;
 public class JdbcConnection extends Connection {
 
     private java.sql.Connection sqlConn;
-    private String driver;
-    private String url;
-    private String user;
-    private String password;
+    private DataSource dataSource;
 
     /**
      * Constructor.
-     * @param driver The sql driver full class name.
-     * @param url The url to database.
-     * @param user The database user.
-     * @param password The database password.
+     * @param dataSource The dataSource.
      */
-    public JdbcConnection(String driver, String url, String user, String password) {
-        this.driver = driver;
-        this.url = url;
-        this.user = user;
-        this.password = password;
+    public JdbcConnection(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
@@ -36,9 +27,8 @@ public class JdbcConnection extends Connection {
             throw new RuntimeException("Connection already is opened.");
         }
         try {
-            Class.forName(driver);
-            sqlConn = DriverManager.getConnection(url, user, password);
-        } catch (Exception e) {
+            sqlConn = dataSource.getConnection();
+        } catch (SQLException e) {
             throw new RuntimeException("Failed to open connection.", e);
         }
     }
@@ -87,8 +77,7 @@ public class JdbcConnection extends Connection {
     @Override
     public String toString() {
         return "JdbcConnection{" +
-                "url='" + url + '\'' +
-                ", driver='" + driver + '\'' +
+                "dataSource='" + dataSource + '\'' +
                 '}';
     }
 }
