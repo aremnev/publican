@@ -1,7 +1,6 @@
 package net.thumbtack.sharding.core;
 
 import fj.F;
-import net.thumbtack.sharding.core.map.ModuloKeyMapper;
 import net.thumbtack.sharding.core.query.Query;
 
 import java.util.ArrayList;

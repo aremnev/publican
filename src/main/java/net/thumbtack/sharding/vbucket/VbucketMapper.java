@@ -1,6 +1,9 @@
-package net.thumbtack.sharding.core.map;
+package net.thumbtack.sharding.vbucket;
+
+import net.thumbtack.sharding.core.KeyMapper;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class VbucketMapper implements KeyMapper {

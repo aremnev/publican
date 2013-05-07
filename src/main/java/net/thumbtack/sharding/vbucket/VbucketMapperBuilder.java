@@ -1,4 +1,6 @@
-package net.thumbtack.sharding.core.map;
+package net.thumbtack.sharding.vbucket;
+
+import net.thumbtack.sharding.vbucket.VbucketState;
 
 import java.util.List;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package net.thumbtack.sharding.core.map;
+package net.thumbtack.sharding.vbucket;
 
 /**
  * State of the bucket on the shard.

@@ -1,6 +1,5 @@
 package net.thumbtack.sharding.core;
 
-import net.thumbtack.sharding.core.map.KeyMapper;
 import net.thumbtack.sharding.core.query.Connection;
 
 import java.util.*;
