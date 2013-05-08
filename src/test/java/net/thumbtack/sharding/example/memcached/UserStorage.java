@@ -26,9 +26,7 @@ public class UserStorage implements Storage {
         shardProps.load(Util.getResourceAsReader("memcached.properties"));
         List<MemcachedShard> shards = MemcachedShard.fromProperties(shardProps);
         ShardingBuilder builder = new ShardingBuilder();
-        for (MemcachedShard shard : shards) {
-            builder.addShard(shard);
-        }
+        builder.setShards(shards);
         builder.addQuery(SELECT_SPEC_SHARD, new SelectSpecShard()).
                 addQuery(UPDATE_SPEC_SHARD, new UpdateSpecShard()).
                 addQuery(UPDATE_ALL_SHARDS, new UpdateAllShardsAsync());

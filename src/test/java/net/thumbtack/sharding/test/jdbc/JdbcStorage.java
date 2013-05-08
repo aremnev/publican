@@ -23,9 +23,7 @@ public class JdbcStorage extends AbstractStorage {
         shardProps.load(Util.getResourceAsReader("H2-shard.properties"));
         List<JdbcShard> shards = JdbcShard.fromProperties(shardProps);
         ShardingBuilder builder = new ShardingBuilder();
-        for (JdbcShard shard : shards) {
-            builder.addShard(shard);
-        }
+        builder.setShards(shards);
         Map<Long, Query> queryMap = getQueryMap(isSync);
         for (long queryId : queryMap.keySet()) {
             builder.addQuery(queryId, queryMap.get(queryId));

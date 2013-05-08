@@ -3,10 +3,7 @@ package net.thumbtack.sharding.core;
 import fj.F;
 import net.thumbtack.sharding.core.query.Query;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static net.thumbtack.helper.Util.*;
 
@@ -23,12 +20,12 @@ public class ShardingBuilder {
     private Map<Long, Query> queryMap = new HashMap<Long, Query>();
 
     /**
-     * Adds one more shard.
-     * @param shard The shard.
+     * Sets shards.
+     * @param shards The shards.
      * @return The builder.
      */
-    public ShardingBuilder addShard(Shard shard) {
-        shards.add(shard);
+    public ShardingBuilder setShards(Collection<? extends Shard> shards) {
+        this.shards = new ArrayList<Shard>(shards);
         return this;
     }
 

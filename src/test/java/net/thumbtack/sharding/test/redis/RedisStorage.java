@@ -23,9 +23,7 @@ public class RedisStorage extends AbstractStorage {
         shardProps.load(Util.getResourceAsReader("redis.properties"));
         List<RedisShard> shards = RedisShard.fromProperties(shardProps);
         ShardingBuilder builder = new ShardingBuilder();
-        for (RedisShard shard : shards) {
-            builder.addShard(shard);
-        }
+        builder.setShards(shards);
         Map<Long, Query> queryMap = getQueryMap(isSync);
         for (long queryId : queryMap.keySet()) {
             builder.addQuery(queryId, queryMap.get(queryId));

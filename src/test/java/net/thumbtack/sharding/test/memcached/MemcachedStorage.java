@@ -23,9 +23,7 @@ public class MemcachedStorage extends AbstractStorage {
         shardProps.load(Util.getResourceAsReader("memcached.properties"));
         List<MemcachedShard> shards = MemcachedShard.fromProperties(shardProps);
         ShardingBuilder builder = new ShardingBuilder();
-        for (MemcachedShard shard : shards) {
-            builder.addShard(shard);
-        }
+        builder.setShards(shards);
         Map<Long, Query> queryMap = getQueryMap(isSync);
         for (long queryId : queryMap.keySet()) {
             builder.addQuery(queryId, queryMap.get(queryId));
