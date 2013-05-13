@@ -11,11 +11,11 @@ public class ActionsQueueInc implements ActionsQueue {
 
     public ActionsQueueInc(Bucket bucket) {
         this.bucket = bucket;
-        date = ActionStorage.getInstance().getNow();
+        date = ActionStorage.getInstance().now();
     }
 
     private void update() {
-        List<Action> actionsInc = ActionStorage.getInstance().retrieveActionsAfterDate(date);
+        List<Action> actionsInc = ActionStorage.getInstance().retrieveActionsForBucketAfterDate(bucket, date);
         actions.addAll(actionsInc);
 //        merge(actions);
         date = findLatestActionTime(actionsInc);
@@ -45,5 +45,10 @@ public class ActionsQueueInc implements ActionsQueue {
     public int count() {
         update();
         return actions.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return count() == 0;
     }
 }

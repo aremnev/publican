@@ -1,5 +1,7 @@
 package net.thumbtack;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import java.util.Date;
 import java.util.List;
 
@@ -19,11 +21,15 @@ public class ActionStorage {
 
     }
 
-    public Date getNow() { // TODO impl
+    public Date now() { // TODO impl
         return now;
     }
 
-    public List<Action> retrieveActionsAfterDate(Date date) {
+    public List<Action> retrieveActionsForBucketAfterDate(Bucket bucket, Date date) {
         return null;   // TODO impl
+    }
+
+    public List<Action> retrieveAllActions(Bucket bucket) {
+        throw new NotImplementedException(); // TODO impl
     }
 }

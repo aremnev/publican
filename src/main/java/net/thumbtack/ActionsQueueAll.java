@@ -1,7 +1,5 @@
 package net.thumbtack;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.util.List;
 
 public class ActionsQueueAll implements ActionsQueue {
@@ -9,11 +7,7 @@ public class ActionsQueueAll implements ActionsQueue {
     private List<Action> actions;
 
     public ActionsQueueAll(Bucket bucket) {
-        actions =  retrieveAllActions(bucket);
-    }
-
-    private List<Action> retrieveAllActions(Bucket bucket) {
-        throw new NotImplementedException(); // TODO
+        actions =  ActionStorage.getInstance().retrieveAllActions(bucket);
     }
 
     @Override
@@ -24,5 +18,10 @@ public class ActionsQueueAll implements ActionsQueue {
     @Override
     public int count() {
         return actions.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return count() == 0;
     }
 }

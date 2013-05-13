@@ -8,8 +8,4 @@ public class Bucket {
         this.shardId = shardId;
         this.bucketIndex = bucketIndex;
     }
-
-    public void doAction(Action action) throws BucketException {
-
-    }
 }
