@@ -22,9 +22,7 @@ public class VbucketMapper implements KeyMapper {
     private KeyMapper safeMapper = new KeyMapper() {
         @Override
         public int shard(long key) {
-            synchronized (bucketToShard) {
-                return map(key);
-            }
+            synchronized (bucketToShard) { return map(key); }
         }
     };
 

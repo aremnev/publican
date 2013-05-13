@@ -11,25 +11,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class VbucketMigration implements Callable<Void> {
+public class VbucketMigration implements Callable<Boolean> {
 
     private static final Logger logger = LoggerFactory.getLogger(VbucketMigration.class);
+
     private final Vbucket bucket;
-    private final int toShard;
-    private final VbucketEngine engine;
+    private final Shard toShard;
+    private final Shard fromShard;
     private final VbucketMigrationHelper helper;
 
-    public VbucketMigration(Vbucket bucket, int toShard, VbucketEngine engine, VbucketMigrationHelper helper) {
+    public VbucketMigration(Vbucket bucket, Shard fromShard, Shard toShard, VbucketMigrationHelper helper) {
         this.bucket = bucket;
+        this.fromShard = fromShard;
         this.toShard = toShard;
-        this.engine = engine;
         this.helper = helper;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public Void call() throws Exception {
-        final List<Connection> connFrom = getBucketConnection(bucket);
+    public Boolean call() throws Exception {
+        logger.debug("Migrating bucket {} from shard {} to shard {}", bucket.id, fromShard.getId(), toShard.getId());
+
+        final List<Connection> connFrom = getShardConnection(fromShard);
         final List<Connection> connTo = getShardConnection(toShard);
         final Query select = new SelectSpecShard();
         final Query update = new UpdateSpecShard();
@@ -49,7 +52,7 @@ public class VbucketMigration implements Callable<Void> {
 
                     for (long id : ids) {
                         Object entity = select.query(helper.getEntity(id), connFrom);
-                        update.query(helper.setEntity(entity), connTo);
+                        update.query(helper.putEntity(entity), connTo);
                     }
 
                     return f(lastModificationTime);
@@ -60,23 +63,12 @@ public class VbucketMigration implements Callable<Void> {
             }
         };
 
-        if (migrationStep.f(0L)) {
-            helper.onFinish(bucket.id, toShard);
-            helper.remove(bucket.fromId, bucket.toId);
-        }
-        return null;
+        return migrationStep.f(0L);
     }
 
-    private List<Connection> getShardConnection(int shardId) {
-        Shard shard = engine.getShard(shardId);
+    private List<Connection> getShardConnection(Shard shard) {
         List<Connection> connections = new ArrayList<Connection>(1);
         connections.add(shard.getConnection());
         return connections;
-    }
-
-    private List<Connection> getBucketConnection(Vbucket bucket) {
-        KeyMapper mapper = engine.getMapper();
-        int shardId = mapper.shard(bucket.fromId);
-        return getShardConnection(shardId);
     }
 }

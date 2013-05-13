@@ -12,9 +12,7 @@ public interface VbucketMigrationHelper<T> {
 
     QueryClosure<T> getEntity(long id);
 
-    QueryClosure<Void> setEntity(T entity);
+    QueryClosure<Void> putEntity(T entity);
 
     QueryClosure<Void> remove(long idFrom, long idTo);
-
-    void onFinish(int bucketId, int toShard);
 }
