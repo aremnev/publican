@@ -27,7 +27,7 @@ public class JdbcShard implements Shard {
      * @param props The properties.
      * @return The list of jdbc shard configurations.
      */
-    public static List<JdbcShard> fromProperties(Properties props) {
+    public static List<Shard> fromProperties(Properties props) {
         Set<Integer> shardIds = new HashSet<Integer>();
         for (String name : props.stringPropertyNames()) {
             if (name.startsWith(SHARD)) {
@@ -35,7 +35,7 @@ public class JdbcShard implements Shard {
                 shardIds.add(id);
             }
         }
-        List<JdbcShard> result = new ArrayList<JdbcShard>(shardIds.size());
+        List<Shard> result = new ArrayList<Shard>(shardIds.size());
         for (int shardId : shardIds) {
             String driver = props.getProperty(SHARD + shardId + DRIVER);
             String url = props.getProperty(SHARD + shardId + URL);

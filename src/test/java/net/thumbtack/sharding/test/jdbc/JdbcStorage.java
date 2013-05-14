@@ -2,6 +2,7 @@ package net.thumbtack.sharding.test.jdbc;
 
 import net.thumbtack.helper.Util;
 import net.thumbtack.sharding.ShardingFacade;
+import net.thumbtack.sharding.core.Shard;
 import net.thumbtack.sharding.core.ShardingBuilder;
 import net.thumbtack.sharding.core.query.Query;
 import net.thumbtack.sharding.core.query.QueryClosure;
@@ -21,7 +22,7 @@ public class JdbcStorage extends AbstractStorage {
     public JdbcStorage(boolean isSync) throws Exception {
         Properties shardProps = new Properties();
         shardProps.load(Util.getResourceAsReader("H2-shard.properties"));
-        List<JdbcShard> shards = JdbcShard.fromProperties(shardProps);
+        List<Shard> shards = JdbcShard.fromProperties(shardProps);
         ShardingBuilder builder = new ShardingBuilder();
         builder.setShards(shards);
         Map<Long, Query> queryMap = getQueryMap(isSync);

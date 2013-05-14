@@ -81,6 +81,10 @@ public class VbucketEngine {
         });
     }
 
+    public KeyMapper getMapper() {
+        return mapper;
+    }
+
     public void setOnMigrationFinishListener(OnMigrationFinishListener onMigrationFinishListener) {
         this.onMigrationFinishListener = onMigrationFinishListener;
     }

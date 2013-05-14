@@ -14,7 +14,7 @@ public class ShardingBuilder {
 
     private static final int DEFAULT_WORK_THREADS = 10;
 
-    private ModuloKeyMapper keyMapper;
+    private KeyMapper keyMapper;
     private int workTreads = DEFAULT_WORK_THREADS;
     private List<Shard> shards = new ArrayList<Shard>();
     private Map<Long, Query> queryMap = new HashMap<Long, Query>();
@@ -45,7 +45,7 @@ public class ShardingBuilder {
      * @param keyMapper The key mapper.
      * @return The builder.
      */
-    public ShardingBuilder setKeyMapper(ModuloKeyMapper keyMapper) {
+    public ShardingBuilder setKeyMapper(KeyMapper keyMapper) {
         this.keyMapper = keyMapper;
         return this;
     }

@@ -33,4 +33,13 @@ public class Vbucket {
     public static long bucketSize(int count) {
         return Long.MAX_VALUE / count + 1;
     }
+
+    @Override
+    public String toString() {
+        return "Vbucket{" +
+                "id=" + id +
+                ", fromId=" + fromId +
+                ", toId=" + toId +
+                '}';
+    }
 }
