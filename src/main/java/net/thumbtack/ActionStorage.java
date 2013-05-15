@@ -28,8 +28,4 @@ public class ActionStorage {
     public List<Action> retrieveActionsForBucketAfterDate(Bucket bucket, Date date) {
         return null;   // TODO impl
     }
-
-    public List<Action> retrieveAllActions(Bucket bucket) {
-        throw new NotImplementedException(); // TODO impl
-    }
 }

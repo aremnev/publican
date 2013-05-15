@@ -8,4 +8,8 @@ public class Bucket {
         this.shardId = shardId;
         this.bucketIndex = bucketIndex;
     }
+
+    public String getShardId() {
+        return shardId;
+    }
 }

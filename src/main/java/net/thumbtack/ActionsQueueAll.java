@@ -1,5 +1,6 @@
 package net.thumbtack;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ActionsQueueAll implements ActionsQueue {
@@ -7,7 +8,8 @@ public class ActionsQueueAll implements ActionsQueue {
     private List<Action> actions;
 
     public ActionsQueueAll(Bucket bucket) {
-        actions =  ActionStorage.getInstance().retrieveAllActions(bucket);
+        actions = new ArrayList<Action>();
+        // TODO get all entities from bucket and convert to Action.Insert. (use Shard depended ActionFactory.createInsertAction(Enity) ?)
     }
 
     @Override

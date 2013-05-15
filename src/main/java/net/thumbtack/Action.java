@@ -1,12 +1,12 @@
 package net.thumbtack;
 
+import net.thumbtack.sharding.core.query.Connection;
+
 import java.util.Date;
 
-public class Action {
+abstract public class Action { // looks like QueryClosure...
     private Date actionTime;
     private ActionType actionType;
-    private Long entityId;
-    private String serializedEntity;
 
     public Date getActionTime() {
         return actionTime;
@@ -16,11 +16,5 @@ public class Action {
         return actionType;
     }
 
-    public Long getEntityId() {
-        return entityId;
-    }
-
-    public String getSerializedEntity() {
-        return serializedEntity;
-    }
+    abstract Result call(Connection connection) throws ActionException;
 }

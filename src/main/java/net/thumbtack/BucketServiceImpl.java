@@ -1,5 +1,6 @@
 package net.thumbtack;
 
+import net.thumbtack.sharding.core.query.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,23 +8,37 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * NB BucketServiceImpl can be running on many machines in same time, so it should be able to synchronize they work correctly.
+ */
 public class BucketServiceImpl implements BucketService {
     private static final Logger logger = LoggerFactory.getLogger(BucketServiceImpl.class);
     private static final int MAX_LOCK_COUNT = 10;
     private static final int THRESHOLD = 10;
     private static final int TIMEOUT = 1000;
 
-
     @Override
-    public void doAction(Action action) throws BucketServiceException {
+    public Result doAction(Action action, long entityId) throws BucketServiceException {
+        Result result = null;
         Set<Bucket> buckets = Collections.emptySet();
         try {
-            buckets = lockBuckets(action); // to avoid changing bucket to non-actual state.
-            doAction(buckets, action);
-//            onActionSuccess(bucket, action);
+            buckets = lockBuckets(action, entityId); // to avoid changing bucket to non-actual state (switching active bucket to inactive etc.).
+            result = doAction(buckets, action);
         } finally {
             unlockBuckets(buckets);
         }
+        return result;
+    }
+
+    @Override
+    public Result doReadAction(Action action) throws BucketServiceException {
+        // search we can perform without id (by attributes), and without write lock.
+        if (action.getActionType() != ActionType.READ) {
+            throw new BucketServiceException("method should be used for READ actions only.");
+        }
+
+        // TODO implement me.
+        return null;
     }
 
     @Override
@@ -42,7 +57,7 @@ public class BucketServiceImpl implements BucketService {
             //   if R it should be in findReplicaBuckets(bucketIndex) and bucket shouldn't became desynchronized with active bucket.
             //   if A - continue
             //   else - error
-            sync(srcBucket, dstBucket);
+            fullSync(srcBucket, dstBucket);
             setBucketState(dstBucket, BucketState.R);
             addReplicaBucket(dstBucket);
             // now we ready to change srcBucket state to A.
@@ -68,7 +83,7 @@ public class BucketServiceImpl implements BucketService {
         Bucket srcBucket = new Bucket(srcShardId, bucketIndex);
         try {
             // blockActivationBucket(bucketIndex)
-            sync(srcBucket, dstBucket);
+            fullSync(srcBucket, dstBucket);
             // now we ready to change dstBucket state to A.
             // unblockActivationBucket(bucketIndex)
             // activateBucketWhenNobodyBlockActivationBucket(dstBucket)
@@ -84,7 +99,7 @@ public class BucketServiceImpl implements BucketService {
     @Override
     public void switchActiveBucket(String dstShardId, int bucketIndex) throws BucketServiceException {
         // TODO if exist at least one sync process, we shouldn't switch.
-        // TODO while we are switching, both Buckets should change them state.
+        // TODO while we are switching, both Buckets shouldn't change them state.
         // TODO after lock Bucket states, check them.
         Bucket activeBucket = findActiveBucket(bucketIndex);
         setBucketState(activeBucket, BucketState.R);
@@ -95,12 +110,15 @@ public class BucketServiceImpl implements BucketService {
         setBucketState(dstBucket, BucketState.A);
     }
 
-    protected void doAction(Set<Bucket> buckets, Action action) throws BucketServiceException {
+    protected Result doAction(Set<Bucket> buckets, Action action) throws BucketServiceException {
         // TODO add aggregation result over all buckets.
         boolean activeBucketIsOk = true;
+        ResultBuilderFactory resultBuilderFactory = ResultBuilderFactoryImpl.getInstance();
+        ResultBuilder resultBuilder = resultBuilderFactory.createResultBuilderForAction(action);
         for (Bucket bucket : buckets) {
             try {
-                doAction(bucket, action);
+                Result result = doAction(bucket, action);
+                resultBuilder.addResult(result);
             } catch (BucketServiceException e) {
                 BucketState bucketState = retrieveBucketState(bucket);
                 switch (bucketState) {
@@ -114,8 +132,9 @@ public class BucketServiceImpl implements BucketService {
             }
         }
         if (!activeBucketIsOk) {
-//            switchActiveBucket();
+//            switchActiveBucket(); // TODO
         }
+        return resultBuilder.build();
     }
 
     @Override
@@ -130,7 +149,7 @@ public class BucketServiceImpl implements BucketService {
         // TODO add R buckets to new shard.
     }
 
-    private void sync(Bucket srcBucket, Bucket dstBucket) throws BucketServiceException {
+    private void fullSync(Bucket srcBucket, Bucket dstBucket) throws BucketServiceException {
         prepareDstBucket(dstBucket);
         ActionsQueue actionsQueue = createActionsQueue(srcBucket);
         Action action;
@@ -234,22 +253,37 @@ public class BucketServiceImpl implements BucketService {
     }
 
     protected void prepareDstBucket(Bucket dstBucket) {
-        clearBucket(dstBucket);
+        clearBucket(dstBucket); // need only for fullSync, not for incrementalSync.
         setBucketState(dstBucket, BucketState.P);
     }
 
-    protected void doAction(Bucket bucket, Action action) throws BucketServiceException {
-        doActionImpl(bucket, action);
-        onActionSuccess(bucket, action);
+    protected Result doAction(Bucket bucket, Action action) throws BucketServiceException {
+        Result result = null;
+        if (action.getActionType() != ActionType.READ) {
+            ActionStorage.getInstance().addAction(bucket, action);
+        }
+        Connection connection = null;
+        connection = open(bucket.getShardId());
+        try {
+            result = action.call(connection);
+        } catch (Exception e) {
+            throw new BucketServiceException(e);
+        } finally {
+            if (connection != null) {
+                connection.close();
+            }
+        }
+//        onActionSuccess(bucket, action);
+        return result;
     }
 
-    protected void doActionImpl(Bucket bucket, Action action) throws BucketServiceException {
-        // todo shard type depended implementation.
+    private Connection open(String shardId) {
+        return null;  //TODO implement me.
     }
 
-    protected Set<Bucket> lockBuckets(Action action) {
+    protected Set<Bucket> lockBuckets(Action action, long entityId) {
         Set<Bucket> result = new HashSet<Bucket>();
-        result.add(lockActiveBucketByEntityId(action.getEntityId()));
+        result.add(lockActiveBucketByEntityId(entityId));
         // TODO
         // if READ, get one Bucket (A or any R).
         // else get all A and R Buckets.
@@ -261,12 +295,12 @@ public class BucketServiceImpl implements BucketService {
     }
 
     protected int mapEntityIdToBucketIndex(Long entityId) { // TODO impl.
-        return 0;  //To change body of created methods use File | Settings | File Templates.
+        return 0;
     }
 
-    protected void onActionSuccess(Bucket bucket, Action action) {
-        ActionStorage.getInstance().addAction(bucket, action);
-    }
+//    protected void onActionSuccess(Bucket bucket, Action action) {
+//
+//    }
 
     protected ActionsQueueCombo createActionsQueue(Bucket bucket) {
         return new ActionsQueueCombo(bucket);
