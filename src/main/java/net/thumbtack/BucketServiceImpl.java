@@ -4,6 +4,7 @@ import net.thumbtack.sharding.core.query.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -59,7 +60,7 @@ public class BucketServiceImpl implements BucketService {
             //   else - error
             fullSync(srcBucket, dstBucket);
             setBucketState(dstBucket, BucketState.R);
-            addReplicaBucket(dstBucket);
+            addReplicaBucket(dstBucket); // NB should works only when no clients using bucketIndex. its ok after fullSync, because fullSync works until no clients using bucketIndex.
             // now we ready to change srcBucket state to A.
             // unblockActivationBucket(bucketIndex)
             // activateBucketWhenNobodyBlockActivationBucket(srcBucket);
@@ -96,43 +97,12 @@ public class BucketServiceImpl implements BucketService {
         }
     }
 
-    @Override
-    public void switchActiveBucket(String dstShardId, int bucketIndex) throws BucketServiceException {
-        // TODO if exist at least one sync process, we shouldn't switch.
-        // TODO while we are switching, both Buckets shouldn't change them state.
-        // TODO after lock Bucket states, check them.
-        Bucket activeBucket = findActiveBucket(bucketIndex);
-        setBucketState(activeBucket, BucketState.R);
-        waitUntilSomeoneIsUsingBucket(activeBucket);
-        Bucket dstBucket = new Bucket(dstShardId, bucketIndex);
-        removeReplicaBucket(dstBucket);
-        addReplicaBucket(activeBucket);
-        setBucketState(dstBucket, BucketState.A);
-    }
-
     protected Result doAction(Set<Bucket> buckets, Action action) throws BucketServiceException {
-        // TODO add aggregation result over all buckets.
-        boolean activeBucketIsOk = true;
         ResultBuilderFactory resultBuilderFactory = ResultBuilderFactoryImpl.getInstance();
         ResultBuilder resultBuilder = resultBuilderFactory.createResultBuilderForAction(action);
         for (Bucket bucket : buckets) {
-            try {
-                Result result = doAction(bucket, action);
-                resultBuilder.addResult(result);
-            } catch (BucketServiceException e) {
-                BucketState bucketState = retrieveBucketState(bucket);
-                switch (bucketState) {
-                    case A:
-                        activeBucketIsOk = false;
-                        break;
-                    case R:
-                        removeReplicaBucket(bucket);
-                        break;
-                }
-            }
-        }
-        if (!activeBucketIsOk) {
-//            switchActiveBucket(); // TODO
+            Result result = doAction(bucket, action);
+            resultBuilder.addResult(result);
         }
         return resultBuilder.build();
     }
@@ -145,9 +115,101 @@ public class BucketServiceImpl implements BucketService {
 
     @Override
     public void removeShard(String shardId) throws BucketServiceException {
-        // TODO move part of A buckets from existing shards to new one.
-        // TODO add R buckets to new shard.
+        // TODO
+        // 1. what if run this method in parallel?
+        // 2. what if other public methods will run in parallel with this method?
+        moveActiveBucketsFromShard(shardId);
+        moveReplicaBucketsFromShard(shardId);
     }
+
+    private void moveActiveBucketsFromShard(String shardId) throws BucketServiceException {
+        // TODO
+        // 1. what if run this method in parallel?
+        // 2. what if other public methods will run in parallel with this method?
+        Collection<Bucket> activeBuckets = findActiveBucketsOnShard(shardId);
+        for (Bucket activeBucket : activeBuckets) {
+            // TODO all code inside for may be run in parallel.
+            Bucket newActiveBucket = findReplicaBucketFor(activeBucket);
+            if (newActiveBucket != null) {
+                // blockActivationBucket(bucketIndex)
+                setBucketState(activeBucket, BucketState.D);
+                waitUntilSomeoneIsUsingBucket(activeBucket);
+                removeReplicaBucket(newActiveBucket);
+                // unblockActivationBucket(bucketIndex)
+                // activateBucketWhenNobodyBlockActivationBucket(dstBucket)
+                setBucketState(newActiveBucket, BucketState.A); // TODO if createNewReplicaBucket or moveActiveBucket process is running on same srcBucket, and haven't finished yet, we shouldn't activate dstBucket.
+            } else {
+                // if shardId is dead, can skip moveActiveBucket(...).
+                Bucket newReplicaBucket = findDBucketForReplicaCreation(activeBucket);
+                moveActiveBucket(shardId, newReplicaBucket.getShardId(), activeBucket.getBucketIndex());
+            }
+        }
+    }
+
+    @Override
+    public void switchActiveBucket(String dstShardId, int bucketIndex) throws BucketServiceException {
+        // TODO if exist at least one sync process, we shouldn't switch.
+        // TODO while we are switching, both Buckets shouldn't change them state.
+        // TODO after lock Bucket states, check them.
+        // blockActivationBucket(bucketIndex)
+        Bucket activeBucket = findActiveBucket(bucketIndex);
+        if (activeBucket != null) {
+            setBucketState(activeBucket, BucketState.D); // TODO if sync process is running on the same bucket, clients will be block until sync finish.
+            waitUntilSomeoneIsUsingBucket(activeBucket);
+            setBucketState(activeBucket, BucketState.R);
+            addReplicaBucket(activeBucket);
+        }
+        Bucket dstBucket = new Bucket(dstShardId, bucketIndex);
+        removeReplicaBucket(dstBucket);
+        // unblockActivationBucket(bucketIndex)
+        // activateBucketWhenNobodyBlockActivationBucket(dstBucket)
+        setBucketState(dstBucket, BucketState.A); // TODO if createNewReplicaBucket or moveActiveBucket process is running on same srcBucket, and haven't finished yet, we shouldn't activate dstBucket.
+    }
+
+    private void moveReplicaBucketsFromShard(String shardId) throws BucketServiceException {
+        // TODO
+        // 1. what if run this method in parallel?
+        // 2. what if other public methods will run in parallel with this method?
+        Collection<Bucket> replicaBuckets = findReplicaBucketsOnShard(shardId);
+        for (Bucket replicaBucket : replicaBuckets) {
+            // TODO should we synchronize access to replicaBucket here? whar if running client in this time?
+            setBucketState(replicaBucket, BucketState.D);
+//            waitUntilSomeoneIsUsingBucket(replicaBucket);
+            removeReplicaBucket(replicaBucket);
+            if (true) { // todo run in parallel for each bucket.
+                Bucket activeBucket = findActiveBucket(replicaBucket.getBucketIndex());
+                if (activeBucket != null) {
+                    Bucket newReplicaBucket = findDBucketForReplicaCreation(activeBucket);
+                    createNewReplicaBucket(activeBucket.getShardId(), newReplicaBucket.getShardId(), activeBucket.getBucketIndex());
+                }
+            }
+        }
+    }
+
+    private Bucket findDBucketForReplicaCreation(Bucket activeBucket) {
+        return null;  // TODO implement me.
+    }
+
+    private Collection<Bucket> findReplicaBucketsOnShard(String shardId) {
+        // bucket not only in state R but also synchronized with A
+        return null;  //To change body of created methods use File | Settings | File Templates.
+    }
+
+    private void switchActiveBucketsToAnotherShards() {
+
+    }
+
+    private Collection<Bucket> findActiveBucketsOnShard(String shardId) {
+        // if on bucketIndex exists at least one replica and (active replica absent or exist on shardId), then add bucket(bucketIndex, shardId) to result,
+        // returns Collection of Active buckets on shardId even if shard is died.
+        // TODO implement me.
+        return null;
+    }
+
+    private Bucket findReplicaBucketFor(Bucket bucket) {
+        return null; // todo impl.
+    }
+
 
     private void fullSync(Bucket srcBucket, Bucket dstBucket) throws BucketServiceException {
         prepareDstBucket(dstBucket);
@@ -267,6 +329,7 @@ public class BucketServiceImpl implements BucketService {
         try {
             result = action.call(connection);
         } catch (Exception e) {
+            onShardError(bucket);
             throw new BucketServiceException(e);
         } finally {
             if (connection != null) {
@@ -276,6 +339,28 @@ public class BucketServiceImpl implements BucketService {
 //        onActionSuccess(bucket, action);
         return result;
     }
+
+    private void onShardError(Bucket bucket) throws BucketServiceException {
+        removeShard(bucket.getShardId()); // run in separate thread, because bucket switching may be required, and bucket may be locked to changing.
+    }
+
+    /**
+     * check shard availability and if not fix it,
+     * may be run regularly by timer.
+     * @param shardId
+     * @throws BucketServiceException
+     */
+    @Override
+    public void checkShard(String shardId) throws BucketServiceException {
+        if (!isShardAlive(shardId)) {
+            removeShard(shardId);
+        }
+    }
+
+    private boolean isShardAlive(String shardId) {
+        return false;  // TODO implement me.
+    }
+
 
     private Connection open(String shardId) {
         return null;  //TODO implement me.

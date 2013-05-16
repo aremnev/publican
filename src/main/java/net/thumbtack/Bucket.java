@@ -12,4 +12,8 @@ public class Bucket {
     public String getShardId() {
         return shardId;
     }
+
+    public int getBucketIndex() {
+        return bucketIndex;
+    }
 }
