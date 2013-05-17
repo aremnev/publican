@@ -15,7 +15,7 @@ public class ActionsQueueInc implements ActionsQueue {
     }
 
     private void update() {
-        List<Action> actionsInc = ActionStorage.getInstance().retrieveActionsForBucketAfterDate(bucket, date);
+        List<Action> actionsInc = ActionStorage.getInstance().retrieveActionsForBucketAfterDate(bucket.getBucketIndex(), date);
         actions.addAll(actionsInc);
 //        merge(actions);
         date = findLatestActionTime(actionsInc);

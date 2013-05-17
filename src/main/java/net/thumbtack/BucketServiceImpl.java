@@ -19,62 +19,30 @@ public class BucketServiceImpl implements BucketService {
     private static final int THRESHOLD = 10;
     private static final int TIMEOUT = 1000;
 
+    private ShardService shardService;
+
+
     @Override
-    public Result doAction(Action action, long entityId) throws BucketServiceException {
-        return doAction(mapEntityIdToBucketIndex(entityId), action);
+    public Result doAction(Action action, long entityId, ActionStrategy actionStrategy) throws BucketServiceException {
+        return actionStrategy.doAction(mapEntityIdToBucketIndex(entityId), action);
     }
 
     @Override
-    public Result doReadAction(Action action) throws BucketServiceException {
-        // search we can perform without id (by attributes), and without write lock.
-        if (action.getActionType() != ActionType.READ) {
-            throw new BucketServiceException("method should be used for READ actions only.");
-        }
-        ResultBuilderFactory resultBuilderFactory = ResultBuilderFactoryImpl.getInstance();
-        ResultBuilder resultBuilder = resultBuilderFactory.createResultBuilderForAction(action);
-        Result result = null;
-        Iterator<Integer> allBucketIndexIterator = getAllBucketIndexIterator();
-        while (allBucketIndexIterator.hasNext()) {
-            Integer bucketIndex = allBucketIndexIterator.next();
-            resultBuilder.addResult(doAction(bucketIndex, action));
-        }
-        return resultBuilder.build();
+    public Result doReadAction(Action action, ActionStrategy actionStrategy) throws BucketServiceException {
+        return actionStrategy.doAction(action);
     }
 
+    @Override
     public Iterator<Integer> getAllBucketIndexIterator() {
         // TODO return set of bucketIndex for all buckets.
         return null;
     }
 
-    protected Result doAction(int bucketIndex, Action action) throws BucketServiceException {
-        // TODO extract logic to ActionStrategy hierarchy.
-        Result result = null;
-        if (action.getActionType() != ActionType.READ) {
-            ActionStorage.getInstance().addAction(bucketIndex, action);
-        }
-        // here can return OK, and do other in background.
-        try {
-            lockBucketIndex(bucketIndex);
-//            Shard activeShard = findShard();
-            String activeShardId = findActiveShardId(bucketIndex);
-            doAction(activeShardId, action);
-            // here only for WRITE actions.
-            for (String replicaShardId : findReplicaShardIds(bucketIndex)) {
-                // may be write to any replicas it is minor error and do some internal stuff without client information. extract logic to ReplicaActionStrategy
-                doAction(replicaShardId, action);
-            }
-            // TODO should we merge any activeShard ReplicaShards results ? seems like shouldn't.
-
-        } finally {
-            unlockBucketIndex(bucketIndex);
-        }
-        return result;
-    }
-
-    protected Result doAction(String shardId, Action action) throws BucketServiceException {
+    @Override
+    public Result doAction(String shardId, Action action) throws BucketServiceException {
         Result result = null;
         Connection connection = null;
-        Shard shard = findShard(shardId);
+        Shard shard = shardService.findShard(shardId);
         connection = shard.getConnection();
         try {
             result = action.call(connection);
@@ -91,27 +59,8 @@ public class BucketServiceImpl implements BucketService {
         return result;
     }
 
-    /**
-     * when Action searches data in shard, it know nothing about buckets areas and collects data from all of them (A, P, D, R), so
-     * here we have to filter retrieved data from non-active buckets, and return data from active buckets only.
-     * not delete, useful for read over all shards.
-     * @param bucketIndex
-     * @param result
-     * @return
-     */
-    private Result filterDataFromNonActiveBuckets(int bucketIndex, Result result) {
-        Map<Long, Object> resultMap = new HashMap<Long, Object>();
-        Map<Long, Object> entityIdEntityMap = result.getEntityIdEntityMap();
-        for (Map.Entry<Long, Object> entry : entityIdEntityMap.entrySet()) {
-            if (mapEntityIdToBucketIndex(entry.getKey()) == bucketIndex) {
-                resultMap.put(entry.getKey(), entry.getValue());
-            }
-        }
-        result.setEntityIdEntityMap(resultMap);
-        return result;
-    }
-
-    protected int mapEntityIdToBucketIndex(Long entityId) { // TODO impl.
+    @Override
+    public int mapEntityIdToBucketIndex(Long entityId) { // TODO impl.
         return 0;
     }
 
@@ -120,7 +69,8 @@ public class BucketServiceImpl implements BucketService {
      * @param bucketIndex
      * @return
      */
-    protected void unlockBucketIndex(int bucketIndex) {
+    @Override
+    public void unlockBucketIndex(int bucketIndex) {
         // TODO
     }
 
@@ -188,6 +138,7 @@ public class BucketServiceImpl implements BucketService {
         // now, no one client knows about this new shard.
         // prepare shard as clear (all buckets have D-state).
         // publicate shard to all clients. (save shardId, ShardType and ShardConfig to common for all clients place)
+        shardService.publicate(shardId, shard);
         // when on shard appear non-D-buckets, all clients have to know about this shard.
         // TODO move part of A buckets from existing shards to new one.
         // TODO add R buckets to new shard.
@@ -202,7 +153,8 @@ public class BucketServiceImpl implements BucketService {
         moveReplicaBucketsFromShard(shardId);
         // TODO now all buckets in D or P states, what to do with P?
         // when all buckets on shard in D(or P?) state it may be removed.
-        // unpublicate shard from all clients. [ShardConfig, Shards's Bucket data, etc.]
+        // remove shard from all clients. [ShardConfig, Shards's Bucket data, etc.]
+        shardService.remove(shardId);
     }
 
     private void moveActiveBucketsFromShard(String shardId) throws BucketServiceException {
@@ -376,12 +328,8 @@ public class BucketServiceImpl implements BucketService {
         // TODO
     }
 
-    private String findActiveShardId(int bucketIndex) {
-        // TODO implement me.
-        return null;
-    }
-
-    private Collection<String> findReplicaShardIds(int bucketIndex) {
+    @Override
+    public Collection<String> findReplicaShardIds(int bucketIndex) {
         // TODO implement me.
         return null;
     }
@@ -394,17 +342,9 @@ public class BucketServiceImpl implements BucketService {
      */
     @Override
     public void checkShard(String shardId) throws BucketServiceException {
-        if (!isShardAlive(shardId)) {
+        if (!shardService.isShardAlive(shardId)) {
             removeShard(shardId);
         }
-    }
-
-    private boolean isShardAlive(String shardId) {
-        return false;  // TODO implement me.
-    }
-
-    private Shard findShard(String shardId) {
-        return null;  //TODO implement me.
     }
 
     /**
@@ -412,7 +352,8 @@ public class BucketServiceImpl implements BucketService {
      * @param bucketIndex
      * @return
      */
-    protected void lockBucketIndex(int bucketIndex) {
+    @Override
+    public void lockBucketIndex(int bucketIndex) {
         // TODO
         Bucket bucket = null;
         for (int i = 0; i < MAX_LOCK_COUNT; i++) {
