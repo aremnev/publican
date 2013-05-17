@@ -17,7 +17,7 @@ public class ActionStorage {
         return instance;
     }
 
-    public void addAction(Bucket bucket, Action action) {
+    public void addAction(int bucketIndex, Action action) {
 
     }
 
@@ -25,7 +25,7 @@ public class ActionStorage {
         return now;
     }
 
-    public List<Action> retrieveActionsForBucketAfterDate(Bucket bucket, Date date) {
+    public List<Action> retrieveActionsForBucketAfterDate(int bucketIndex, Date date) {
         return null;   // TODO impl
     }
 }

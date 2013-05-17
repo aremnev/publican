@@ -1,13 +1,12 @@
 package net.thumbtack;
 
+import net.thumbtack.sharding.core.Shard;
 import net.thumbtack.sharding.core.query.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -23,15 +22,7 @@ public class BucketServiceImpl implements BucketService {
 
     @Override
     public Result doAction(Action action, long entityId) throws BucketServiceException {
-        Result result = null;
-        Set<Bucket> buckets = Collections.emptySet();
-        try {
-            buckets = lockBuckets(action, entityId);
-            result = doAction(buckets, action);
-        } finally {
-            unlockBuckets(buckets);
-        }
-        return result;
+        return doAction(mapEntityIdToBucketIndex(entityId), action);
     }
 
     @Override
@@ -40,15 +31,102 @@ public class BucketServiceImpl implements BucketService {
         if (action.getActionType() != ActionType.READ) {
             throw new BucketServiceException("method should be used for READ actions only.");
         }
+        ResultBuilderFactory resultBuilderFactory = ResultBuilderFactoryImpl.getInstance();
+        ResultBuilder resultBuilder = resultBuilderFactory.createResultBuilderForAction(action);
         Result result = null;
-        Set<Bucket> buckets = Collections.emptySet();
+        Iterator<Integer> allBucketIndexIterator = getAllBucketIndexIterator();
+        while (allBucketIndexIterator.hasNext()) {
+            Integer bucketIndex = allBucketIndexIterator.next();
+            resultBuilder.addResult(doAction(bucketIndex, action));
+        }
+        return resultBuilder.build();
+    }
+
+    public Iterator<Integer> getAllBucketIndexIterator() {
+        // TODO return set of bucketIndex for all buckets.
+        return null;
+    }
+
+    protected Result doAction(int bucketIndex, Action action) throws BucketServiceException {
+        // TODO extract logic to ActionStrategy hierarchy.
+        Result result = null;
+        if (action.getActionType() != ActionType.READ) {
+            ActionStorage.getInstance().addAction(bucketIndex, action);
+        }
+        // here can return OK, and do other in background.
         try {
-            buckets = lockBuckets(action);
-            result = doAction(buckets, action);
+            lockBucketIndex(bucketIndex);
+//            Shard activeShard = findShard();
+            String activeShardId = findActiveShardId(bucketIndex);
+            doAction(activeShardId, action);
+            // here only for WRITE actions.
+            for (String replicaShardId : findReplicaShardIds(bucketIndex)) {
+                // may be write to any replicas it is minor error and do some internal stuff without client information. extract logic to ReplicaActionStrategy
+                doAction(replicaShardId, action);
+            }
+            // TODO should we merge any activeShard ReplicaShards results ? seems like shouldn't.
+
         } finally {
-            unlockBuckets(buckets);
+            unlockBucketIndex(bucketIndex);
         }
         return result;
+    }
+
+    protected Result doAction(String shardId, Action action) throws BucketServiceException {
+        Result result = null;
+        Connection connection = null;
+        Shard shard = findShard(shardId);
+        connection = shard.getConnection();
+        try {
+            result = action.call(connection);
+//            result = filterDataFromNonActiveBuckets(bucket.getBucketIndex(), result);
+        } catch (Exception e) {
+            onShardError(shardId);
+            throw new BucketServiceException(e);
+        } finally {
+            if (connection != null) {
+                connection.close();
+            }
+        }
+//        onActionSuccess(bucket, action);
+        return result;
+    }
+
+    /**
+     * when Action searches data in shard, it know nothing about buckets areas and collects data from all of them (A, P, D, R), so
+     * here we have to filter retrieved data from non-active buckets, and return data from active buckets only.
+     * not delete, useful for read over all shards.
+     * @param bucketIndex
+     * @param result
+     * @return
+     */
+    private Result filterDataFromNonActiveBuckets(int bucketIndex, Result result) {
+        Map<Long, Object> resultMap = new HashMap<Long, Object>();
+        Map<Long, Object> entityIdEntityMap = result.getEntityIdEntityMap();
+        for (Map.Entry<Long, Object> entry : entityIdEntityMap.entrySet()) {
+            if (mapEntityIdToBucketIndex(entry.getKey()) == bucketIndex) {
+                resultMap.put(entry.getKey(), entry.getValue());
+            }
+        }
+        result.setEntityIdEntityMap(resultMap);
+        return result;
+    }
+
+    protected int mapEntityIdToBucketIndex(Long entityId) { // TODO impl.
+        return 0;
+    }
+
+    /**
+     *  to avoid changing bucket to non-actual state (switching active bucket to inactive etc.).
+     * @param bucketIndex
+     * @return
+     */
+    protected void unlockBucketIndex(int bucketIndex) {
+        // TODO
+    }
+
+    private void onShardError(String shardId) throws BucketServiceException {
+        removeShard(shardId); // TODO run in separate thread, because bucket switching may be required, and bucket may be locked to changing.
     }
 
     @Override
@@ -106,15 +184,6 @@ public class BucketServiceImpl implements BucketService {
         }
     }
 
-    protected Result doAction(Set<Bucket> buckets, Action action) throws BucketServiceException {
-        ResultBuilderFactory resultBuilderFactory = ResultBuilderFactoryImpl.getInstance();
-        ResultBuilder resultBuilder = resultBuilderFactory.createResultBuilderForAction(action);
-        for (Bucket bucket : buckets) {
-            Result result = doAction(bucket, action);
-            resultBuilder.addResult(result);
-        }
-        return resultBuilder.build();
-    }
 
     @Override
     public void addShard(String shardId) throws BucketServiceException {
@@ -204,10 +273,6 @@ public class BucketServiceImpl implements BucketService {
         return null;  //To change body of created methods use File | Settings | File Templates.
     }
 
-    private void switchActiveBucketsToAnotherShards() {
-
-    }
-
     private Collection<Bucket> findActiveBucketsOnShard(String shardId) {
         // if on bucketIndex exists at least one replica and (active replica absent or exist on shardId), then add bucket(bucketIndex, shardId) to result,
         // returns Collection of Active buckets on shardId even if shard is died.
@@ -226,12 +291,25 @@ public class BucketServiceImpl implements BucketService {
         Action action;
         boolean isAlreadySet = false;
         while ((action = pop(actionsQueue, srcBucket)) != null) { // TODO Is it possible, if we block on pop() forever and never will call setSrcBucketState(D)???
-            doAction(dstBucket, action);
+            doAction(dstBucket.getShardId(), action);
             if ((!isAlreadySet) && (actionsQueue.count() < THRESHOLD)) { // TODO if other sync process are running on same srcBucket, and has actionsQueue.count() > THRESHOLD, we shouldn't do that.
                 setBucketState(srcBucket, BucketState.D);
                 isAlreadySet = true;
             }
         }
+    }
+
+    protected void prepareDstBucket(Bucket dstBucket) {
+        clearBucket(dstBucket); // need only for fullSync, not for incrementalSync.
+        setBucketState(dstBucket, BucketState.P);
+    }
+
+    protected void clearBucket(Bucket dstBucket) {
+        // todo shard type depended implementation.
+    }
+
+    protected ActionsQueueCombo createActionsQueue(Bucket bucket) {
+        return new ActionsQueueCombo(bucket);
     }
 
     private void addReplicaBucket(Bucket newReplicaBucket) {
@@ -289,83 +367,18 @@ public class BucketServiceImpl implements BucketService {
         return null;  //To change body of created methods use File | Settings | File Templates.
     }
 
-    protected void lockBucket(Bucket bucket) {
-        //To change body of created methods use File | Settings | File Templates.
-        // TODO increaseBucketUsageCount()
-    }
-
-    protected void unlockBucket(Bucket bucket) {
-        //To change body of created methods use File | Settings | File Templates.
-        // TODO decreaseBucketUsageCount()
-    }
-
-    protected void unlockBuckets(Set<Bucket> buckets) {
-        //To change body of created methods use File | Settings | File Templates.
-        // TODO decreaseBucketUsageCount()
-    }
-
-    protected Bucket lockActiveBucket(int bucketIndex) {
-        Bucket bucket = null;
-        for (int i = 0; i < MAX_LOCK_COUNT; i++) {
-            bucket = findActiveBucket(bucketIndex);
-            lockBucket(bucket);
-            BucketState bucketState = retrieveBucketState(bucket);
-            if (bucketState == BucketState.A) {
-                break;
-            }
-            unlockBucket(bucket);
-            //            sleep();//???
-        }
-        return bucket;
-    }
-
     protected void setBucketState(Bucket bucket, BucketState bucketState) {
         // TODO
     }
 
-    protected void prepareDstBucket(Bucket dstBucket) {
-        clearBucket(dstBucket); // need only for fullSync, not for incrementalSync.
-        setBucketState(dstBucket, BucketState.P);
+    private String findActiveShardId(int bucketIndex) {
+        // TODO implement me.
+        return null;
     }
 
-    protected Result doAction(Bucket bucket, Action action) throws BucketServiceException {
-        Result result = null;
-        if (action.getActionType() != ActionType.READ) {
-            ActionStorage.getInstance().addAction(bucket, action);
-        }
-        Connection connection = null;
-        connection = open(bucket.getShardId());
-        try {
-            result = action.call(connection);
-            // when Action searches data in shard, it know nothing about buckets areas and collects data from all of them (A, P, D, R), so
-            // here we have to filter retrieved data from non-active buckets, and return data from active buckets only.
-            result = filterDataFromNonActiveBuckets(bucket.getBucketIndex(), result);
-        } catch (Exception e) {
-            onShardError(bucket);
-            throw new BucketServiceException(e);
-        } finally {
-            if (connection != null) {
-                connection.close();
-            }
-        }
-//        onActionSuccess(bucket, action);
-        return result;
-    }
-
-    private Result filterDataFromNonActiveBuckets(int bucketIndex, Result result) {
-        Map<Long, Object> resultMap = new HashMap<Long, Object>();
-        Map<Long, Object> entityIdEntityMap = result.getEntityIdEntityMap();
-        for (Map.Entry<Long, Object> entry : entityIdEntityMap.entrySet()) {
-            if (mapEntityIdToBucketIndex(entry.getKey()) == bucketIndex) {
-                resultMap.put(entry.getKey(), entry.getValue());
-            }
-        }
-        result.setEntityIdEntityMap(resultMap);
-        return result;
-    }
-
-    private void onShardError(Bucket bucket) throws BucketServiceException {
-        removeShard(bucket.getShardId()); // run in separate thread, because bucket switching may be required, and bucket may be locked to changing.
+    private Collection<String> findReplicaShardIds(int bucketIndex) {
+        // TODO implement me.
+        return null;
     }
 
     /**
@@ -385,71 +398,42 @@ public class BucketServiceImpl implements BucketService {
         return false;  // TODO implement me.
     }
 
-
-    private Connection open(String shardId) {
+    private Shard findShard(String shardId) {
         return null;  //TODO implement me.
     }
 
     /**
      *  to avoid changing bucket to non-actual state (switching active bucket to inactive etc.).
-     * @param action
-     * @param entityId
+     * @param bucketIndex
      * @return
      */
-    protected Set<Bucket> lockBuckets(Action action, long entityId) {
-
-        Set<Bucket> result = new HashSet<Bucket>();
-        result.add(lockActiveBucketByEntityId(entityId));
+    protected void lockBucketIndex(int bucketIndex) {
         // TODO
-        // if READ, get one Bucket (A or any R).
-        // else get all A and R Buckets.
-        return result;
-    }
-
-    /**
-     *  to avoid changing bucket to non-actual state (switching active bucket to inactive etc.).
-     * @param action
-     * @return
-     */
-    protected Set<Bucket> lockBuckets(Action action) {
-        // TODO
-        // if READ, get one Bucket (A or any R).
-        // else get all A and R Buckets.
-        return lockAllActiveBuckets();
-    }
-
-    protected Bucket lockActiveBucketByEntityId(Long entityId) {
-        return lockActiveBucket(mapEntityIdToBucketIndex(entityId));
-    }
-
-    protected Set<Bucket> lockAllActiveBuckets() {
-        Set<Bucket> result = new HashSet<Bucket>();
-        Iterator<Integer> allBucketIndexIterator = getAllBucketIndexIterator();
-        while (allBucketIndexIterator.hasNext()) {
-            Integer bucketIndex = allBucketIndexIterator.next();
-            result.add(lockActiveBucket(bucketIndex));
+        Bucket bucket = null;
+        for (int i = 0; i < MAX_LOCK_COUNT; i++) {
+            bucket = findActiveBucket(bucketIndex);
+            lockBucket(bucket);
+            BucketState bucketState = retrieveBucketState(bucket);
+            if (bucketState == BucketState.A) {
+                break;
+            }
+            unlockBucket(bucket);
+            //            sleep();//???
         }
-        return result;
+//        return bucket;
     }
 
-    protected int mapEntityIdToBucketIndex(Long entityId) { // TODO impl.
-        return 0;
+    protected void lockBucket(Bucket bucket) {
+        //To change body of created methods use File | Settings | File Templates.
+        // TODO increaseBucketUsageCount()
+    }
+
+    protected void unlockBucket(Bucket bucket) {
+        //To change body of created methods use File | Settings | File Templates.
+        // TODO decreaseBucketUsageCount()
     }
 
 //    protected void onActionSuccess(Bucket bucket, Action action) {
 //
 //    }
-
-    protected ActionsQueueCombo createActionsQueue(Bucket bucket) {
-        return new ActionsQueueCombo(bucket);
-    }
-
-    protected void clearBucket(Bucket dstBucket) {
-        // todo shard type depended implementation.
-    }
-
-    public Iterator<Integer> getAllBucketIndexIterator() {
-        // TODO return set of bucketIndex for all buckets.
-        return null;
-    }
 }
