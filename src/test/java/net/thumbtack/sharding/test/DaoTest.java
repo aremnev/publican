@@ -145,6 +145,7 @@ public class DaoTest extends ShardingTest {
     public void deleteTest() throws Exception {
         List<Object> toDelete = Arrays.asList(inserted[0], inserted[2]);
         List<Object> notDeleted = dao.select(Arrays.asList(fId.f(toDelete.get(0)), fId.f(toDelete.get(1))));
+        sortById(notDeleted);
         for (int i = 0; i < toDelete.size(); i++) {
             assertEquals(toDelete.get(i), notDeleted.get(i));
         }
@@ -181,8 +182,8 @@ public class DaoTest extends ShardingTest {
         return random.nextInt(inserted.length);
     }
 
-    private void sortById(List<Object> selected) {
-        Collections.sort(selected, new Comparator<Object>() {
+    private void sortById(List<Object> objects) {
+        Collections.sort(objects, new Comparator<Object>() {
             @Override
             public int compare(Object e1, Object e2) {
                 long diff = fId.f(e1) - fId.f(e2);

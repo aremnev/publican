@@ -27,7 +27,7 @@ public class FriendsStorage implements Storage {
         Properties shardProps = new Properties();
         shardProps.load(Util.getResourceAsReader("H2-shard.properties"));
         List<Shard> shards = JdbcShard.fromProperties(shardProps);
-        Map<Integer, Shard> bucketToShard = mapBucketsFromProperties(shards, shardProps);
+        Map<Integer, Shard> bucketToShard = VbucketEngine.mapBucketsFromProperties(shards, shardProps);
         VbucketEngine vbucketEngine = new VbucketEngine(bucketToShard);
         ShardingBuilder builder = new ShardingBuilder();
         builder.setShards(shards);
@@ -54,25 +54,5 @@ public class FriendsStorage implements Storage {
     @Override
     public ShardingFacade sharding() {
         return sharding;
-    }
-
-    private static Map<Integer, Shard> mapBucketsFromProperties(List<Shard> shards, Properties props) {
-        Map<Integer, Shard> shardMap = index(shards, new F<Shard, Integer>() {
-            @Override
-            public Integer f(Shard shard) {
-                return shard.getId();
-            }
-        });
-        Map<Integer, Shard> bucketToShard = new HashMap<Integer, Shard>();
-        for (int shardId : shardMap.keySet()) {
-            Shard shard = shardMap.get(shardId);
-            String[] range = props.getProperty("shard."+ shardId +".vbucketRange").split("-");
-            int rangeA = Integer.parseInt(range[0]);
-            int rangeB = Integer.parseInt(range[1]);
-            for (int i = rangeA; i <= rangeB; i++) {
-                bucketToShard.put(i, shard);
-            }
-        }
-        return bucketToShard;
     }
 }

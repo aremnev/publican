@@ -43,9 +43,4 @@ public class SelectShard implements Query {
 
         return result;
     }
-
-    @Override
-    public boolean isUpdate() {
-        return false;
-    }
 }

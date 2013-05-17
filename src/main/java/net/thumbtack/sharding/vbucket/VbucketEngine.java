@@ -8,7 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -87,6 +89,26 @@ public class VbucketEngine {
 
     public void setOnMigrationFinishListener(OnMigrationFinishListener onMigrationFinishListener) {
         this.onMigrationFinishListener = onMigrationFinishListener;
+    }
+
+    public static Map<Integer, Shard> mapBucketsFromProperties(List<Shard> shards, Properties props) {
+        Map<Integer, Shard> shardMap = index(shards, new F<Shard, Integer>() {
+            @Override
+            public Integer f(Shard shard) {
+                return shard.getId();
+            }
+        });
+        Map<Integer, Shard> bucketToShard = new HashMap<Integer, Shard>();
+        for (int shardId : shardMap.keySet()) {
+            Shard shard = shardMap.get(shardId);
+            String[] range = props.getProperty("shard."+ shardId +".vbucketRange").split("-");
+            int rangeA = Integer.parseInt(range[0]);
+            int rangeB = Integer.parseInt(range[1]);
+            for (int i = rangeA; i <= rangeB; i++) {
+                bucketToShard.put(i, shard);
+            }
+        }
+        return bucketToShard;
     }
 
     public interface OnMigrationFinishListener {

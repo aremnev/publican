@@ -45,9 +45,4 @@ public class UpdateAllShards implements Query {
         }
         return result;
     }
-
-    @Override
-    public boolean isUpdate() {
-        return true;
-    }
 }

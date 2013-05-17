@@ -99,7 +99,6 @@ public abstract class QueryAsync implements Query {
         return resultValue;
     }
 
-    @Override
     public boolean isUpdate() {
         return false;
     }

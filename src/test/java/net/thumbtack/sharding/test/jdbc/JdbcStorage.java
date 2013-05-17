@@ -9,6 +9,7 @@ import net.thumbtack.sharding.core.query.QueryClosure;
 import net.thumbtack.sharding.impl.jdbc.JdbcConnection;
 import net.thumbtack.sharding.impl.jdbc.JdbcShard;
 import net.thumbtack.sharding.test.common.AbstractStorage;
+import net.thumbtack.sharding.vbucket.VbucketEngine;
 
 import java.sql.Connection;
 import java.util.List;
@@ -23,8 +24,11 @@ public class JdbcStorage extends AbstractStorage {
         Properties shardProps = new Properties();
         shardProps.load(Util.getResourceAsReader("H2-shard.properties"));
         List<Shard> shards = JdbcShard.fromProperties(shardProps);
+        Map<Integer, Shard> bucketToShard = VbucketEngine.mapBucketsFromProperties(shards, shardProps);
+        VbucketEngine vbucketEngine = new VbucketEngine(bucketToShard);
         ShardingBuilder builder = new ShardingBuilder();
         builder.setShards(shards);
+        builder.setKeyMapper(vbucketEngine.getMapper());
         Map<Long, Query> queryMap = getQueryMap(isSync);
         for (long queryId : queryMap.keySet()) {
             builder.addQuery(queryId, queryMap.get(queryId));

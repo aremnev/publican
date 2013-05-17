@@ -15,10 +15,4 @@ public interface Query {
      * @return The result of query execution.
      */
     <U> U query(QueryClosure<U> closure, List<Connection> shards);
-
-    /**
-     * Does the query write or only read.
-     * @return True if the query does update false otherwise.
-     */
-    boolean isUpdate();
 }
