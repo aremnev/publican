@@ -18,17 +18,19 @@ public interface BucketService {
     Iterator<Integer> getAllBucketIndexIterator();
 
     int mapEntityIdToBucketIndex(Long entityId);
+    void setBucketState(Bucket bucket, BucketState bucketState);
+    void addReplicaBucket(Bucket newReplicaBucket);
 
     // Admin.
-    void addShard(String shardId, Shard shard) throws BucketServiceException;
-    void removeShard(String shardId) throws BucketServiceException;
-    void checkShard(String shardId) throws BucketServiceException;
+    BucketState retrieveBucketState(Bucket bucket);
+    int retrieveBucketUsageCount(Bucket bucket);
+    Collection<Bucket> findActiveBucketsOnShard(String shardId);
+    void removeReplicaBucket(Bucket dstBucket);
+    void waitUntilSomeoneIsUsingBucket(Bucket bucket) throws BucketServiceException;
+    Bucket findActiveBucket(int bucketIndex);
 
-    void moveActiveBucket(String srcShardId, String dstShardId, int bucketIndex) throws BucketServiceException;
-    void createNewReplicaBucket(String srcShardId, String dstShardId, int bucketIndex) throws BucketServiceException;
-    void switchActiveBucket(String dstShardId, int bucketIndex) throws BucketServiceException;
 
     void lockBucketIndex(int bucketIndex) throws BucketServiceException;
     Collection<String> findReplicaShardIds(int bucketIndex) throws BucketServiceException;
-    public void unlockBucketIndex(int bucketIndex) throws BucketServiceException;
+    void unlockBucketIndex(int bucketIndex) throws BucketServiceException;
 }

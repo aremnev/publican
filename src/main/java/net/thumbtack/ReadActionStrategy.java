@@ -7,6 +7,7 @@ import java.util.Map;
 public class ReadActionStrategy implements ActionStrategy {
     private BucketService bucketService;
     private ShardService shardService;
+    private AdminService adminService;
 
     @Override
     public Result doAction(int bucketIndex, Action action) throws BucketServiceException {
@@ -20,7 +21,13 @@ public class ReadActionStrategy implements ActionStrategy {
             bucketService.lockBucketIndex(bucketIndex);
 //            Shard activeShard = findShard();
             String activeShardId = shardService.findActiveShardId(bucketIndex);
-            bucketService.doAction(activeShardId, action);
+            try {
+                bucketService.doAction(activeShardId, action);
+            }  catch (BucketServiceException e) {
+                adminService.removeShard(activeShardId); // TODO run in separate thread, because bucket switching may be required, and bucket may be locked to changing.
+                throw new BucketServiceException(e);
+            }
+
         } finally {
             bucketService.unlockBucketIndex(bucketIndex);
         }

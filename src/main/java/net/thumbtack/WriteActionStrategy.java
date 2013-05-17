@@ -5,6 +5,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 public class WriteActionStrategy implements ActionStrategy {
     private BucketService bucketService;
     private ShardService shardService;
+    private AdminService adminService;
 
     @Override
     public Result doAction(int bucketIndex, Action action) throws BucketServiceException {
@@ -18,11 +19,22 @@ public class WriteActionStrategy implements ActionStrategy {
             bucketService.lockBucketIndex(bucketIndex);
 //            Shard activeShard = findShard();
             String activeShardId = shardService.findActiveShardId(bucketIndex);
-            bucketService.doAction(activeShardId, action);
+            try {
+                bucketService.doAction(activeShardId, action);
+            } catch (BucketServiceException e) {
+                adminService.removeShard(activeShardId); // TODO run in separate thread, because bucket switching may be required, and bucket may be locked to changing.
+                throw new BucketServiceException(e);
+            }
+
             // here only for WRITE actions.
             for (String replicaShardId : bucketService.findReplicaShardIds(bucketIndex)) {
                 // may be write to any replicas it is minor error and do some internal stuff without client information. extract logic to ReplicaActionStrategy
-                bucketService.doAction(replicaShardId, action);
+                try {
+                    bucketService.doAction(replicaShardId, action);
+                }  catch (BucketServiceException e) {
+                    adminService.removeShard(activeShardId); // TODO run in separate thread, because bucket switching may be required, and bucket may be locked to changing.
+                    throw new BucketServiceException(e);
+                }
             }
             // TODO should we merge any activeShard ReplicaShards results ? seems like shouldn't.
 
