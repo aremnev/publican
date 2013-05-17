@@ -19,17 +19,6 @@ public class BucketServiceImpl implements BucketService {
 
     private ShardService shardService;
 
-
-    @Override
-    public Result doAction(Action action, long entityId, ActionStrategy actionStrategy) throws BucketServiceException {
-        return actionStrategy.doAction(mapEntityIdToBucketIndex(entityId), action);
-    }
-
-    @Override
-    public Result doReadAction(Action action, ActionStrategy actionStrategy) throws BucketServiceException {
-        return actionStrategy.doAction(action);
-    }
-
     @Override
     public Iterator<Integer> getAllBucketIndexIterator() {
         // TODO return set of bucketIndex for all buckets.

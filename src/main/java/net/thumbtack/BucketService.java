@@ -1,15 +1,9 @@
 package net.thumbtack;
 
-import net.thumbtack.sharding.core.Shard;
-
 import java.util.Collection;
 import java.util.Iterator;
 
 public interface BucketService {
-
-    // Clients.
-    Result doAction(Action action, long entityId, ActionStrategy actionStrategy) throws BucketServiceException;
-    Result doReadAction(Action action, ActionStrategy actionStrategy) throws BucketServiceException;
 
     // for WriteActionStrategy
     Result doAction(String shardId, Action action) throws BucketServiceException;
