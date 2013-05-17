@@ -6,7 +6,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -23,7 +26,7 @@ public class BucketServiceImpl implements BucketService {
         Result result = null;
         Set<Bucket> buckets = Collections.emptySet();
         try {
-            buckets = lockBuckets(action, entityId); // to avoid changing bucket to non-actual state (switching active bucket to inactive etc.).
+            buckets = lockBuckets(action, entityId);
             result = doAction(buckets, action);
         } finally {
             unlockBuckets(buckets);
@@ -37,9 +40,15 @@ public class BucketServiceImpl implements BucketService {
         if (action.getActionType() != ActionType.READ) {
             throw new BucketServiceException("method should be used for READ actions only.");
         }
-
-        // TODO implement me.
-        return null;
+        Result result = null;
+        Set<Bucket> buckets = Collections.emptySet();
+        try {
+            buckets = lockBuckets(action);
+            result = doAction(buckets, action);
+        } finally {
+            unlockBuckets(buckets);
+        }
+        return result;
     }
 
     @Override
@@ -328,6 +337,9 @@ public class BucketServiceImpl implements BucketService {
         connection = open(bucket.getShardId());
         try {
             result = action.call(connection);
+            // when Action searches data in shard, it know nothing about buckets areas and collects data from all of them (A, P, D, R), so
+            // here we have to filter retrieved data from non-active buckets, and return data from active buckets only.
+            result = filterDataFromNonActiveBuckets(bucket.getBucketIndex(), result);
         } catch (Exception e) {
             onShardError(bucket);
             throw new BucketServiceException(e);
@@ -337,6 +349,18 @@ public class BucketServiceImpl implements BucketService {
             }
         }
 //        onActionSuccess(bucket, action);
+        return result;
+    }
+
+    private Result filterDataFromNonActiveBuckets(int bucketIndex, Result result) {
+        Map<Long, Object> resultMap = new HashMap<Long, Object>();
+        Map<Long, Object> entityIdEntityMap = result.getEntityIdEntityMap();
+        for (Map.Entry<Long, Object> entry : entityIdEntityMap.entrySet()) {
+            if (mapEntityIdToBucketIndex(entry.getKey()) == bucketIndex) {
+                resultMap.put(entry.getKey(), entry.getValue());
+            }
+        }
+        result.setEntityIdEntityMap(resultMap);
         return result;
     }
 
@@ -366,7 +390,14 @@ public class BucketServiceImpl implements BucketService {
         return null;  //TODO implement me.
     }
 
+    /**
+     *  to avoid changing bucket to non-actual state (switching active bucket to inactive etc.).
+     * @param action
+     * @param entityId
+     * @return
+     */
     protected Set<Bucket> lockBuckets(Action action, long entityId) {
+
         Set<Bucket> result = new HashSet<Bucket>();
         result.add(lockActiveBucketByEntityId(entityId));
         // TODO
@@ -375,8 +406,30 @@ public class BucketServiceImpl implements BucketService {
         return result;
     }
 
+    /**
+     *  to avoid changing bucket to non-actual state (switching active bucket to inactive etc.).
+     * @param action
+     * @return
+     */
+    protected Set<Bucket> lockBuckets(Action action) {
+        // TODO
+        // if READ, get one Bucket (A or any R).
+        // else get all A and R Buckets.
+        return lockAllActiveBuckets();
+    }
+
     protected Bucket lockActiveBucketByEntityId(Long entityId) {
         return lockActiveBucket(mapEntityIdToBucketIndex(entityId));
+    }
+
+    protected Set<Bucket> lockAllActiveBuckets() {
+        Set<Bucket> result = new HashSet<Bucket>();
+        Iterator<Integer> allBucketIndexIterator = getAllBucketIndexIterator();
+        while (allBucketIndexIterator.hasNext()) {
+            Integer bucketIndex = allBucketIndexIterator.next();
+            result.add(lockActiveBucket(bucketIndex));
+        }
+        return result;
     }
 
     protected int mapEntityIdToBucketIndex(Long entityId) { // TODO impl.
@@ -393,5 +446,10 @@ public class BucketServiceImpl implements BucketService {
 
     protected void clearBucket(Bucket dstBucket) {
         // todo shard type depended implementation.
+    }
+
+    public Iterator<Integer> getAllBucketIndexIterator() {
+        // TODO return set of bucketIndex for all buckets.
+        return null;
     }
 }
