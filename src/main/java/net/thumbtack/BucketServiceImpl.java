@@ -9,7 +9,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * NB BucketServiceImpl can be running on many machines in same time, so it should be able to synchronize they work correctly.
@@ -184,9 +183,12 @@ public class BucketServiceImpl implements BucketService {
         }
     }
 
-
     @Override
-    public void addShard(String shardId) throws BucketServiceException {
+    public void addShard(String shardId, Shard shard) throws BucketServiceException {
+        // now, no one client knows about this new shard.
+        // prepare shard as clear (all buckets have D-state).
+        // publicate shard to all clients. (save shardId, ShardType and ShardConfig to common for all clients place)
+        // when on shard appear non-D-buckets, all clients have to know about this shard.
         // TODO move part of A buckets from existing shards to new one.
         // TODO add R buckets to new shard.
     }
@@ -198,6 +200,9 @@ public class BucketServiceImpl implements BucketService {
         // 2. what if other public methods will run in parallel with this method?
         moveActiveBucketsFromShard(shardId);
         moveReplicaBucketsFromShard(shardId);
+        // TODO now all buckets in D or P states, what to do with P?
+        // when all buckets on shard in D(or P?) state it may be removed.
+        // unpublicate shard from all clients. [ShardConfig, Shards's Bucket data, etc.]
     }
 
     private void moveActiveBucketsFromShard(String shardId) throws BucketServiceException {
