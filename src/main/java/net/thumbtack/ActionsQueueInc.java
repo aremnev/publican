@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ActionsQueueInc implements ActionsQueue {
-    private Date date;
+    private long date;
     private Bucket bucket;
     private List<Action> actions = new LinkedList<Action>();
 
@@ -21,14 +21,14 @@ public class ActionsQueueInc implements ActionsQueue {
         date = findLatestActionTime(actionsInc);
     }
 
-    private Date findLatestActionTime(List<Action> actions) {
-        Date max = null;
+    private long findLatestActionTime(List<Action> actions) {
+        Long max = null;
         for (Action action : actions) {
             if (max == null) {
-                max = action.getActionTime();
+                max = action.getActionId();
             } else {
-                if (action.getActionTime().after(max)) {
-                    max = action.getActionTime();
+                if (action.getActionId() > max) {
+                    max = action.getActionId();
                 }
             }
         }

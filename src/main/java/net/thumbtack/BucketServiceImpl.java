@@ -135,6 +135,16 @@ public class BucketServiceImpl implements BucketService {
         // TODO
     }
 
+    @Override
+    public long retrieveLastAcceptedAction(Bucket bucket) throws BucketServiceException {
+        return 0;  // TODO
+    }
+
+    @Override
+    public void updateLastAcceptedAction(Bucket bucket, Long actionId) throws BucketServiceException {
+        // TODO
+    }
+
 //    protected void onActionSuccess(Bucket bucket, Action action) {
 //
 //    }

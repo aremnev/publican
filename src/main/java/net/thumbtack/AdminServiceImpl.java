@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 public class AdminServiceImpl implements AdminService {
     private static final Logger logger = LoggerFactory.getLogger(AdminServiceImpl.class);
@@ -61,6 +62,24 @@ public class AdminServiceImpl implements AdminService {
             if ((!isAlreadySet) && (actionsQueue.count() < THRESHOLD)) { // TODO if other sync process are running on same srcBucket, and has actionsQueue.count() > THRESHOLD, we shouldn't do that.
                 bucketService.setBucketState(srcBucket, BucketState.D);
                 isAlreadySet = true;
+            }
+        }
+    }
+
+    @Override
+    public void incrementalSync(Bucket bucket, long lastActionId) throws BucketServiceException {
+        // TODO only one thread per bucket in same time is allowed.
+        long lastAcceptedActionId = bucketService.retrieveLastAcceptedAction(bucket);
+        Iterator<Action> actionIterator = ActionStorage.getInstance().findActionsBetween(lastAcceptedActionId, lastActionId);
+        while (actionIterator.hasNext()) { // TODO use ActionsQueueInc instead actionIterator?
+            Action action = actionIterator.next();
+            try {
+                bucketService.doAction(bucket.getShardId(), action);
+                bucketService.updateLastAcceptedAction(bucket, action.getActionId());
+                // TODO when doAction was ok, but updateLastAcceptedAction was fail, action should be undone, otherwise, in future while sync process it will perform again and lead to error (double insert...).
+            } catch (BucketServiceException e) {
+                removeShard(bucket.getShardId()); // TODO run in separate thread, because bucket switching may be required, and bucket may be locked to changing.
+                throw new BucketServiceException(e);
             }
         }
     }

@@ -5,11 +5,11 @@ import net.thumbtack.sharding.core.query.Connection;
 import java.util.Date;
 
 abstract public class Action { // looks like QueryClosure...
-    private Date actionTime;
+    private Long actionId;
     private ActionType actionType;
 
-    public Date getActionTime() {
-        return actionTime;
+    public Long getActionId() {
+        return actionId;
     }
 
     public ActionType getActionType() {

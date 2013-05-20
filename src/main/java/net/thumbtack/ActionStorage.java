@@ -1,13 +1,11 @@
 package net.thumbtack;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 public class ActionStorage {
     private static ActionStorage instance = new ActionStorage();
-    private Date now;
+    private long now;
 
     private ActionStorage() {
 
@@ -17,15 +15,25 @@ public class ActionStorage {
         return instance;
     }
 
-    public void addAction(int bucketIndex, Action action) {
-
+    /**
+     *
+     * @param bucketIndex
+     * @param action
+     * @return actionId.
+     */
+    public long addAction(int bucketIndex, Action action) {
+       return 0; // todo implement me.
     }
 
-    public Date now() { // TODO impl
+    public long now() { // TODO impl
         return now;
     }
 
-    public List<Action> retrieveActionsForBucketAfterDate(int bucketIndex, Date date) {
+    public List<Action> retrieveActionsForBucketAfterDate(int bucketIndex, long date) {
         return null;   // TODO impl
+    }
+
+    public Iterator<Action> findActionsBetween(long lastAcceptedActionId, long lastActionId) {
+        return null;  // TODO impl
     }
 }
