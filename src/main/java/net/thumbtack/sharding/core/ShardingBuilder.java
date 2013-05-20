@@ -1,6 +1,8 @@
 package net.thumbtack.sharding.core;
 
 import fj.F;
+import net.thumbtack.sharding.core.cluster.EventProcessor;
+import net.thumbtack.sharding.core.cluster.ShardingCluster;
 import net.thumbtack.sharding.core.query.Query;
 
 import java.util.*;
@@ -18,6 +20,7 @@ public class ShardingBuilder {
     private int workTreads = DEFAULT_WORK_THREADS;
     private List<Shard> shards = new ArrayList<Shard>();
     private Map<Long, Query> queryMap = new HashMap<Long, Query>();
+    private ShardingCluster shardingCluster;
 
     /**
      * Sets shards.
@@ -60,6 +63,11 @@ public class ShardingBuilder {
         return this;
     }
 
+    public ShardingBuilder setShardingCluster(ShardingCluster shardingCluster) {
+        this.shardingCluster = shardingCluster;
+        return this;
+    }
+
     /**
      * Builds the Sharding object.
      * @return The Sharding object.
@@ -73,7 +81,15 @@ public class ShardingBuilder {
                 }
             }));
         }
-        ShardResolver shardResolver = new ShardResolver(shards, keyMapper);
-        return new Sharding(queryMap, shardResolver, workTreads);
+
+        Sharding sharding = new Sharding(queryMap, shards, keyMapper, workTreads);
+        if (shardingCluster != null) {
+            shardingCluster.addEventProcessor(sharding);
+            if (keyMapper instanceof EventProcessor) {
+                shardingCluster.addEventProcessor((EventProcessor) keyMapper);
+            }
+            sharding.setQueryLock(shardingCluster.getQueryLock());
+        }
+        return sharding;
     }
 }

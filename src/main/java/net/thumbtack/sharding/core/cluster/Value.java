@@ -1,4 +1,4 @@
-package net.thumbtack.sharding.core;
+package net.thumbtack.sharding.core.cluster;
 
 public interface Value<T> {
 

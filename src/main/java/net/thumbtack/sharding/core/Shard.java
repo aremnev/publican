@@ -2,10 +2,12 @@ package net.thumbtack.sharding.core;
 
 import net.thumbtack.sharding.core.query.Connection;
 
+import java.io.Serializable;
+
 /**
  * General interface for any shards.
  */
-public interface Shard {
+public interface Shard extends Serializable {
 
     /**
      * Gets the shard id.

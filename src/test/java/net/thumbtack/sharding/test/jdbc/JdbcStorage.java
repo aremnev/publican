@@ -28,7 +28,7 @@ public class JdbcStorage extends AbstractStorage {
         VbucketEngine vbucketEngine = new VbucketEngine(bucketToShard);
         ShardingBuilder builder = new ShardingBuilder();
         builder.setShards(shards);
-        builder.setKeyMapper(vbucketEngine.getMapper());
+        builder.setKeyMapper(vbucketEngine);
         Map<Long, Query> queryMap = getQueryMap(isSync);
         for (long queryId : queryMap.keySet()) {
             builder.addQuery(queryId, queryMap.get(queryId));

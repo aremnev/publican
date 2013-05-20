@@ -3,7 +3,6 @@ package net.thumbtack.sharding.vbucket;
 import net.thumbtack.sharding.core.KeyMapper;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class VbucketMapper implements KeyMapper {
@@ -38,11 +37,13 @@ public class VbucketMapper implements KeyMapper {
     }
 
     public void moveBucket(int bucket, int movedTo) {
-        synchronized (bucketToShard) {
-            internalMapper = safeMapper;
-            bucketToShard.remove(bucket);
-            bucketToShard.put(bucket, movedTo);
-            internalMapper = basicMapper;
+        if (bucketToShard.get(bucket) != movedTo) {
+            synchronized (bucketToShard) {
+                internalMapper = safeMapper;
+                bucketToShard.remove(bucket);
+                bucketToShard.put(bucket, movedTo);
+                internalMapper = basicMapper;
+            }
         }
     }
 

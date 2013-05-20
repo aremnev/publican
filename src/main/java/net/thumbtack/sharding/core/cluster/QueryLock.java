@@ -1,9 +1,9 @@
-package net.thumbtack.sharding.core;
+package net.thumbtack.sharding.core.cluster;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
 public class QueryLock {
@@ -13,22 +13,19 @@ public class QueryLock {
     private Lock lock;
     private Value<Boolean> isLocked;
 
-    public QueryLock(Lock lock, Value<Boolean> isLocked, long... queryIds) {
+    public QueryLock(Lock lock, Value<Boolean> isLocked, List<Long> queryIds) {
         this(lock, Long.MAX_VALUE, TimeUnit.MILLISECONDS, isLocked, queryIds);
     }
 
-    public QueryLock(Lock lock, long timeout, TimeUnit timeUnit, Value<Boolean> isLocked, long... queryIds) {
+    public QueryLock(Lock lock, long timeout, TimeUnit timeUnit, Value<Boolean> isLocked, List<Long> queryIds) {
         this.lock = lock;
         this.isLocked = isLocked;
         this.timeout = timeUnit.toMillis(timeout);
-        this.queryIds = new HashSet<Long>(queryIds.length);
-        for (long queryId : queryIds) {
-            this.queryIds.add(queryId);
-        }
+        this.queryIds = new HashSet<Long>(queryIds);
     }
 
-    public void lock(long queryId) {
-        if (! queryIds.isEmpty() && queryIds.contains(queryId)) {
+    public void lock() {
+        if (! queryIds.isEmpty()) {
             lock.lock();
             isLocked.set(true);
         }

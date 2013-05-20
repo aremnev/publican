@@ -31,7 +31,7 @@ public class FriendsStorage implements Storage {
         VbucketEngine vbucketEngine = new VbucketEngine(bucketToShard);
         ShardingBuilder builder = new ShardingBuilder();
         builder.setShards(shards);
-        builder.setKeyMapper(vbucketEngine.getMapper());
+        builder.setKeyMapper(vbucketEngine);
         builder.addQuery(SELECT_SPEC_SHARD, new SelectSpecShard()).
                 addQuery(UPDATE_SPEC_SHARD, new UpdateSpecShard()).
                 addQuery(UPDATE_ALL_SHARDS, new UpdateAllShardsAsync());

@@ -3,6 +3,7 @@ package net.thumbtack.sharding.vbucket;
 import fj.F;
 import net.thumbtack.helper.NamedThreadFactory;
 import net.thumbtack.sharding.core.KeyMapper;
+import net.thumbtack.sharding.core.cluster.*;
 import net.thumbtack.sharding.core.Shard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,26 +12,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 import static net.thumbtack.helper.Util.*;
 
 /**
  *
  */
-public class VbucketEngine {
+public class VbucketEngine implements EventProcessor, KeyMapper {
 
     private static final Logger logger = LoggerFactory.getLogger(VbucketEngine.class);
 
-    private OnMigrationFinishListener onMigrationFinishListener;
+    private EventListener listener;
     private VbucketMapper mapper;
     private Map<Integer, Shard> shards;
     private Map<Integer, Vbucket> buckets;
     private ExecutorService executor;
     private ExecutorService waitThread;
+    private QueryLock queryLock;
 
     public VbucketEngine(Map<Integer, Shard> bucketToShard) {
         Map<Integer, Integer> bucketToShardId = new HashMap<Integer, Integer>(bucketToShard.size());
@@ -44,12 +43,12 @@ public class VbucketEngine {
                 return (int) (key / bucketSize + 1);
             }
         });
-        shards = index(bucketToShard.values(), new F<Shard, Integer>() {
+        shards = new ConcurrentHashMap<Integer, Shard>(index(bucketToShard.values(), new F<Shard, Integer>() {
             @Override
             public Integer f(Shard shard) {
                 return shard.getId();
             }
-        });
+        }));
         buckets = index(Vbucket.buildBuckets(bucketToShard.size()), new F<Vbucket, Integer>() {
             @Override
             public Integer f(Vbucket bucket) {
@@ -60,13 +59,32 @@ public class VbucketEngine {
         waitThread = Executors.newSingleThreadExecutor(new NamedThreadFactory("wait-migration"));
     }
 
+    public void setShardingCluster(ShardingCluster cluster) {
+        queryLock = cluster.getQueryLock();
+        cluster.addEventProcessor(this);
+    }
+
     public void migrate(final int bucketId, final int toShardId, VbucketMigrationHelper helper) {
         Vbucket bucket = buckets.get(bucketId);
         Shard fromShard = shards.get(mapper.shard(bucket.fromId));
         Shard toShard = shards.get(toShardId);
         logger.debug("Starting migration of bucket {} from shard {} to shard {}", bucketId, fromShard.getId(), toShardId);
-        VbucketMigration migration = new VbucketMigration(bucket, fromShard, toShard, helper);
-        final Future<Boolean> future = executor.submit(migration);
+        final VbucketMigration migration = new VbucketMigration(bucket, fromShard, toShard, helper);
+        final Future<Boolean> future = executor.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                if (queryLock != null) {
+                    queryLock.lock();
+                }
+                try {
+                    return migration.call();
+                } finally {
+                    if (queryLock != null) {
+                        queryLock.unlock();
+                    }
+                }
+            }
+        });
         waitThread.execute(new Runnable() {
             @Override
             public void run() {
@@ -76,19 +94,11 @@ public class VbucketEngine {
                 } catch (Exception e) {
                     logger.error("Error during wait of bucket migration", e);
                 }
-                if (success && onMigrationFinishListener != null) {
-                    onMigrationFinishListener.onFinish(bucketId, toShardId);
+                if (success && listener != null) {
+                    listener.onEvent(new VbucketMovedEvent(bucketId, toShardId));
                 }
             }
         });
-    }
-
-    public KeyMapper getMapper() {
-        return mapper;
-    }
-
-    public void setOnMigrationFinishListener(OnMigrationFinishListener onMigrationFinishListener) {
-        this.onMigrationFinishListener = onMigrationFinishListener;
     }
 
     public static Map<Integer, Shard> mapBucketsFromProperties(List<Shard> shards, Properties props) {
@@ -111,8 +121,24 @@ public class VbucketEngine {
         return bucketToShard;
     }
 
-    public interface OnMigrationFinishListener {
+    @Override
+    public void onEvent(Event event) {
+        if (event.getId() == ShardAddedEvent.ID) {
+            Shard newShard = ((ShardAddedEvent) event).getEventObject();
+            shards.put(newShard.getId(), newShard);
+        } else if (event.getId() == VbucketMovedEvent.ID) {
+            VbucketMigrationInfo migrationInfo = ((VbucketMovedEvent) event).getEventObject();
+            mapper.moveBucket(migrationInfo.getBucketId(), migrationInfo.getToShardId());
+        }
+    }
 
-        void onFinish(int bucketId, int toShard);
+    @Override
+    public void setEventListener(EventListener listener) {
+        this.listener = listener;
+    }
+
+    @Override
+    public int shard(long key) {
+        return mapper.shard(key);
     }
 }
