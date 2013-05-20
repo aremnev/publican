@@ -18,7 +18,7 @@ public class HazelcastShardingCluster implements ShardingCluster {
     private HazelcastInstance hazelcast;
     private QueryLock queryLock;
 
-    public HazelcastShardingCluster(int port, List<String> hosts, List<EventProcessor> processors, List<Long> queriesToBlock) {
+    public HazelcastShardingCluster(int port, List<String> hosts, List<Long> queriesToBlock) {
         Config cfg = new Config();
         NetworkConfig networkConfig = cfg.getNetworkConfig();
         networkConfig.setPort(port);
