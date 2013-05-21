@@ -18,28 +18,22 @@ public class AdminServiceImpl implements AdminService {
     private ShardService shardService;
 
     @Override
-    public void createNewReplicaBucket(String srcShardId, String dstShardId, int bucketIndex) throws BucketServiceException {
+    public void createNewReplicaBucketOnShard(String dstShardId, int bucketIndex) throws BucketServiceException {
+        Bucket dstBucket = new Bucket(dstShardId, bucketIndex);
         // assumptions:
         //   dstBucket has D state and unused.
-        //   srcBucket may A or R.
-        // TODO only one worker should be able to move concrete bucket over the all clients (even if on different machines).
-        // caller of this method should guarantee it.
-
-        Bucket dstBucket = new Bucket(dstShardId, bucketIndex);
-        Bucket srcBucket = new Bucket(srcShardId, bucketIndex);
+        // TODO only one worker should be able to move concrete dstBucket over the all clients (even if on different machines).
         try {
             // blockActivationBucket(bucketIndex)
-            // check srcBucket,
-            //   if R it should be in findReplicaBuckets(bucketIndex) and bucket shouldn't became desynchronized with active bucket.
-            //   if A - continue
-            //   else - error
-            fullSync(srcBucket, dstBucket);
+            Bucket activeBucket = bucketService.findActiveBucket(bucketIndex); // NB activeBucket may be null.
+            sync(activeBucket, dstBucket);
+            // here activeBucket in D state.
             bucketService.setBucketState(dstBucket, BucketState.R);
-            bucketService.addReplicaBucket(dstBucket); // NB should works only when no clients using bucketIndex. its ok after fullSync, because fullSync works until no clients using bucketIndex.
+            bucketService.addReplicaBucket(dstBucket); // NB should works only when no clients using bucketIndex. its ok after sync, because sync works until no clients using bucketIndex.
             // now we ready to change srcBucket state to A.
             // unblockActivationBucket(bucketIndex)
             // activateBucketWhenNobodyBlockActivationBucket(srcBucket);
-            bucketService.setBucketState(srcBucket, BucketState.A); // TODO if createNewReplicaBucket or moveActiveBucket process is running on same srcBucket, and haven't finished yet, we shouldn't activate dstBucket.
+            bucketService.setBucketState(activeBucket, BucketState.A); // TODO if createNewReplicaBucketOnShard or moveActiveBucketToShard process is running on same srcBucket, and haven't finished yet, we shouldn't activate dstBucket.
         } catch (BucketServiceException e) {
             // unblockActivationBucket(bucketIndex)
             bucketService.setBucketState(dstBucket, BucketState.D);
@@ -47,20 +41,22 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    private void fullSync(Bucket srcBucket, Bucket dstBucket) throws BucketServiceException {
-        prepareDstBucket(dstBucket);
-        ActionsQueue actionsQueue = createActionsQueue(srcBucket);
+    private void sync(Bucket activeBucket, Bucket dstBucket) throws BucketServiceException {
+        // TODO only one thread per the same bucket in same time is allowed.
+//        bucketService.setBucketState(dstBucket, BucketState.P);
+        ActionsQueue actionsQueue = createActionsQueue(dstBucket);
         Action action;
         boolean isAlreadySet = false;
-        while ((action = pop(actionsQueue, srcBucket)) != null) { // TODO Is it possible, if we block on pop() forever and never will call setSrcBucketState(D)???
+        while ((action = pop(actionsQueue, activeBucket)) != null) { // TODO Is it possible, if we block on pop() forever and never will call setSrcBucketState(D)???
             try {
                 bucketService.doAction(dstBucket.getShardId(), action);
+                bucketService.updateLastAcceptedAction(dstBucket, action.getActionId());
             } catch (BucketServiceException e) {
                 removeShard(dstBucket.getShardId()); // TODO run in separate thread, because bucket switching may be required, and bucket may be locked to changing.
                 throw new BucketServiceException(e);
             }
-            if ((!isAlreadySet) && (actionsQueue.count() < THRESHOLD)) { // TODO if other sync process are running on same srcBucket, and has actionsQueue.count() > THRESHOLD, we shouldn't do that.
-                bucketService.setBucketState(srcBucket, BucketState.D);
+            if ((!isAlreadySet) && (actionsQueue.count() < THRESHOLD)) { // TODO if other sync process are running on same activeBucket, and has actionsQueue.count() > THRESHOLD, we shouldn't do that.
+                bucketService.setBucketState(activeBucket, BucketState.D);
                 isAlreadySet = true;
             }
         }
@@ -68,8 +64,8 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public void incrementalSync(Bucket bucket, long lastActionId) throws BucketServiceException {
-        // TODO only one thread per bucket in same time is allowed.
-        long lastAcceptedActionId = bucketService.retrieveLastAcceptedAction(bucket);
+        // TODO only one thread per the same bucket in same time is allowed.
+        long lastAcceptedActionId = bucketService.retrieveLastAcceptedActionId(bucket);
         Iterator<Action> actionIterator = ActionStorage.getInstance().findActionsBetween(lastAcceptedActionId, lastActionId);
         while (actionIterator.hasNext()) { // TODO use ActionsQueueInc instead actionIterator?
             Action action = actionIterator.next();
@@ -84,17 +80,8 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    protected void prepareDstBucket(Bucket dstBucket) {
-        clearBucket(dstBucket); // need only for fullSync, not for incrementalSync.
-        bucketService.setBucketState(dstBucket, BucketState.P);
-    }
-
-    protected void clearBucket(Bucket dstBucket) {
-        // todo shard type depended implementation.
-    }
-
-    protected ActionsQueueCombo createActionsQueue(Bucket bucket) {
-        return new ActionsQueueCombo(bucket);
+    protected ActionsQueue createActionsQueue(Bucket bucket) throws BucketServiceException {
+        return new ActionsQueueInc(bucket);
     }
 
     protected Action pop(ActionsQueue actionsQueue, Bucket bucket) throws BucketServiceException {
@@ -121,7 +108,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public void moveActiveBucket(String srcShardId, String dstShardId, int bucketIndex) throws BucketServiceException {
+    public void moveActiveBucketToShard(String dstShardId, int bucketIndex) throws BucketServiceException {
         // assumptions:
         //   dstBucket has D state and unused.
         //   srcBucket may A.
@@ -129,14 +116,15 @@ public class AdminServiceImpl implements AdminService {
         // caller of this method should guarantee it.
 
         Bucket dstBucket = new Bucket(dstShardId, bucketIndex);
-        Bucket srcBucket = new Bucket(srcShardId, bucketIndex);
+//        Bucket srcBucket = new Bucket(srcShardId, bucketIndex);
         try {
             // blockActivationBucket(bucketIndex)
-            fullSync(srcBucket, dstBucket);
+            Bucket activeBucket = bucketService.findActiveBucket(bucketIndex); // activeBucket may be null
+            sync(activeBucket, dstBucket);
             // now we ready to change dstBucket state to A.
             // unblockActivationBucket(bucketIndex)
             // activateBucketWhenNobodyBlockActivationBucket(dstBucket)
-            bucketService.setBucketState(dstBucket, BucketState.A); // TODO if createNewReplicaBucket process is running on same srcBucket, and haven't finished yet, we shouldn't activate dstBucket.
+            bucketService.setBucketState(dstBucket, BucketState.A); // TODO if createNewReplicaBucketOnShard process is running on same srcBucket, and haven't finished yet, we shouldn't activate dstBucket.
 
         } catch (BucketServiceException e) {
             // unblockActivationBucket(bucketIndex)
@@ -160,11 +148,11 @@ public class AdminServiceImpl implements AdminService {
                 bucketService.removeReplicaBucket(newActiveBucket);
                 // unblockActivationBucket(bucketIndex)
                 // activateBucketWhenNobodyBlockActivationBucket(dstBucket)
-                bucketService.setBucketState(newActiveBucket, BucketState.A); // TODO if createNewReplicaBucket or moveActiveBucket process is running on same srcBucket, and haven't finished yet, we shouldn't activate dstBucket.
+                bucketService.setBucketState(newActiveBucket, BucketState.A); // TODO if createNewReplicaBucketOnShard or moveActiveBucketToShard process is running on same srcBucket, and haven't finished yet, we shouldn't activate dstBucket.
             } else {
-                // if shardId is dead, can skip moveActiveBucket(...).
-                Bucket newReplicaBucket = findDBucketForReplicaCreation(activeBucket);
-                moveActiveBucket(shardId, newReplicaBucket.getShardId(), activeBucket.getBucketIndex());
+                // if shardId is dead, can skip moveActiveBucketToShard(...).
+                Bucket newReplicaBucket = findDBucketForReplicaCreation(activeBucket.getBucketIndex());
+                moveActiveBucketToShard(newReplicaBucket.getShardId(), activeBucket.getBucketIndex());
             }
         }
     }
@@ -177,7 +165,7 @@ public class AdminServiceImpl implements AdminService {
         return null; // todo impl.
     }
 
-    private Bucket findDBucketForReplicaCreation(Bucket activeBucket) {
+    private Bucket findDBucketForReplicaCreation(int bucketIndex) {
         return null;  // TODO implement me.
     }
 
@@ -198,11 +186,8 @@ public class AdminServiceImpl implements AdminService {
 //            waitUntilSomeoneIsUsingBucket(replicaBucket);
             bucketService.removeReplicaBucket(replicaBucket);
             if (true) { // todo run in parallel for each bucket.
-                Bucket activeBucket = bucketService.findActiveBucket(replicaBucket.getBucketIndex());
-                if (activeBucket != null) {
-                    Bucket newReplicaBucket = findDBucketForReplicaCreation(activeBucket);
-                    createNewReplicaBucket(activeBucket.getShardId(), newReplicaBucket.getShardId(), activeBucket.getBucketIndex());
-                }
+                Bucket newReplicaBucket = findDBucketForReplicaCreation(replicaBucket.getBucketIndex());
+                createNewReplicaBucketOnShard(newReplicaBucket.getShardId(), replicaBucket.getBucketIndex());
             }
         }
     }
@@ -249,7 +234,7 @@ public class AdminServiceImpl implements AdminService {
         bucketService.removeReplicaBucket(dstBucket);
         // unblockActivationBucket(bucketIndex)
         // activateBucketWhenNobodyBlockActivationBucket(dstBucket)
-        bucketService.setBucketState(dstBucket, BucketState.A); // TODO if createNewReplicaBucket or moveActiveBucket process is running on same srcBucket, and haven't finished yet, we shouldn't activate dstBucket.
+        bucketService.setBucketState(dstBucket, BucketState.A); // TODO if createNewReplicaBucketOnShard or moveActiveBucketToShard process is running on same srcBucket, and haven't finished yet, we shouldn't activate dstBucket.
     }
 
     @Override

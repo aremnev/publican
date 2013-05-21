@@ -136,7 +136,7 @@ public class BucketServiceImpl implements BucketService {
     }
 
     @Override
-    public long retrieveLastAcceptedAction(Bucket bucket) throws BucketServiceException {
+    public long retrieveLastAcceptedActionId(Bucket bucket) throws BucketServiceException {
         return 0;  // TODO
     }
 

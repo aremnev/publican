@@ -11,7 +11,6 @@ public class ReadActionStrategy implements ActionStrategy {
 
     @Override
     public Result doAction(int bucketIndex, Action action) throws BucketServiceException {
-        // TODO extract logic to ActionStrategy hierarchy.
         Result result = null;
         if (action.getActionType() != ActionType.READ) {
             ActionStorage.getInstance().addAction(bucketIndex, action);

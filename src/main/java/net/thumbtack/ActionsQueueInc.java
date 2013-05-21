@@ -1,38 +1,23 @@
 package net.thumbtack;
 
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
 public class ActionsQueueInc implements ActionsQueue {
-    private long date;
-    private Bucket bucket;
-    private List<Action> actions = new LinkedList<Action>();
+    private long lastActionId;
+    private LinkedList<Action> actions = new LinkedList<Action>();
+    private BucketService bucketService;
 
-    public ActionsQueueInc(Bucket bucket) {
-        this.bucket = bucket;
-        date = ActionStorage.getInstance().now();
+
+    public ActionsQueueInc(Bucket bucket) throws BucketServiceException {
+        lastActionId = bucketService.retrieveLastAcceptedActionId(bucket);
     }
 
     private void update() {
-        List<Action> actionsInc = ActionStorage.getInstance().retrieveActionsForBucketAfterDate(bucket.getBucketIndex(), date);
+        List<Action> actionsInc = ActionStorage.getInstance().retrieveActionsAfter(lastActionId);
         actions.addAll(actionsInc);
 //        merge(actions);
-        date = findLatestActionTime(actionsInc);
-    }
-
-    private long findLatestActionTime(List<Action> actions) {
-        Long max = null;
-        for (Action action : actions) {
-            if (max == null) {
-                max = action.getActionId();
-            } else {
-                if (action.getActionId() > max) {
-                    max = action.getActionId();
-                }
-            }
-        }
-        return max;
+        lastActionId = actions.getLast().getActionId();
     }
 
     @Override

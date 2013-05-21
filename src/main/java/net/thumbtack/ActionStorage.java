@@ -16,7 +16,7 @@ public class ActionStorage {
     }
 
     /**
-     *
+     * add action to ahead log.
      * @param bucketIndex
      * @param action
      * @return actionId.
@@ -25,14 +25,21 @@ public class ActionStorage {
        return 0; // todo implement me.
     }
 
-    public long now() { // TODO impl
-        return now;
-    }
-
-    public List<Action> retrieveActionsForBucketAfterDate(int bucketIndex, long date) {
+    /**
+     * retrieve data from ahead log.
+     * @param date
+     * @return
+     */
+    public List<Action> retrieveActionsAfter(long date) {
         return null;   // TODO impl
     }
 
+    /**
+     * retrieve data from ahead log.
+     * @param lastAcceptedActionId
+     * @param lastActionId
+     * @return
+     */
     public Iterator<Action> findActionsBetween(long lastAcceptedActionId, long lastActionId) {
         return null;  // TODO impl
     }

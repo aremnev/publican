@@ -28,7 +28,7 @@ public interface BucketService {
     Collection<String> findReplicaShardIds(int bucketIndex) throws BucketServiceException;
     void unlockBucketIndex(int bucketIndex) throws BucketServiceException;
 
-    long retrieveLastAcceptedAction(Bucket bucket) throws BucketServiceException;
+    long retrieveLastAcceptedActionId(Bucket bucket) throws BucketServiceException;
 
     void updateLastAcceptedAction(Bucket bucket, Long actionId) throws BucketServiceException;
 }
