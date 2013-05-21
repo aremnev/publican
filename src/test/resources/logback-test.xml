@@ -1,6 +1,7 @@
 <configuration>
 
     <logger name="java.sql" level="INFO"/>
+    <logger name="VbucketEngine" level="DEBUG"/>
 
     <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
@@ -8,7 +9,7 @@
         </layout>
     </appender>
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="stdout"/>
     </root>
 

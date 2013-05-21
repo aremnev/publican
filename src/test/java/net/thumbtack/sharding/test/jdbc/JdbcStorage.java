@@ -2,13 +2,13 @@ package net.thumbtack.sharding.test.jdbc;
 
 import net.thumbtack.helper.Util;
 import net.thumbtack.sharding.ShardingFacade;
+import net.thumbtack.sharding.Storage;
 import net.thumbtack.sharding.core.Shard;
 import net.thumbtack.sharding.core.ShardingBuilder;
 import net.thumbtack.sharding.core.query.Query;
 import net.thumbtack.sharding.core.query.QueryClosure;
 import net.thumbtack.sharding.impl.jdbc.JdbcConnection;
 import net.thumbtack.sharding.impl.jdbc.JdbcShard;
-import net.thumbtack.sharding.test.common.AbstractStorage;
 import net.thumbtack.sharding.vbucket.VbucketEngine;
 
 import java.sql.Connection;
@@ -16,7 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-public class JdbcStorage extends AbstractStorage {
+import static net.thumbtack.sharding.ShardingFacade.getQueryMap;
+
+public class JdbcStorage implements Storage {
 
     private ShardingFacade sharding;
 

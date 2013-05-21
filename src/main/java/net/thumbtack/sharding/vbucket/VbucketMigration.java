@@ -30,10 +30,8 @@ public class VbucketMigration implements Callable<Boolean> {
     @SuppressWarnings("unchecked")
     @Override
     public Boolean call() throws Exception {
-        logger.debug("Migrating bucket {} from shard {} to shard {}", bucket.id, fromShard.getId(), toShard.getId());
+        logger.info("Migrating bucket {} from shard {} to shard {}", bucket.id, fromShard.getId(), toShard.getId());
 
-        final List<Connection> connFrom = getShardConnection(fromShard);
-        final List<Connection> connTo = getShardConnection(toShard);
         final Query select = new SelectSpecShard();
         final Query update = new UpdateSpecShard();
         final QueryClosure<Long> lastModificationF = helper.getLastModificationTime(bucket.fromId, bucket.toId);
@@ -43,16 +41,16 @@ public class VbucketMigration implements Callable<Boolean> {
             @Override
             public Boolean f(Long timeFrom) {
                 try {
-                    long lastModificationTime = select.query(lastModificationF, connFrom);
-                    QueryClosure<List<Long>> modifiedAfterF = helper.getModifiedAfter(timeFrom);
-                    List<Long> ids = select.query(modifiedAfterF, connFrom);
+                    long lastModificationTime = select.query(lastModificationF, getShardConnection(fromShard));
+                    QueryClosure<List<Long>> modifiedAfterF = helper.getModifiedAfter(bucket.fromId, bucket.toId, timeFrom);
+                    List<Long> ids = select.query(modifiedAfterF, getShardConnection(fromShard));
                     if (ids == null || ids.isEmpty()) {
                         return true;
                     }
 
                     for (long id : ids) {
-                        Object entity = select.query(helper.getEntity(id), connFrom);
-                        update.query(helper.putEntity(entity), connTo);
+                        Object entity = select.query(helper.getEntity(id), getShardConnection(fromShard));
+                        update.query(helper.putEntity(entity), getShardConnection(toShard));
                     }
 
                     return f(lastModificationTime);
@@ -64,6 +62,11 @@ public class VbucketMigration implements Callable<Boolean> {
         };
 
         return migrationStep.f(0L);
+    }
+
+    public void finish() {
+        Query update = new UpdateSpecShard();
+        update.query(helper.remove(bucket.fromId, bucket.toId), getShardConnection(fromShard));
     }
 
     private List<Connection> getShardConnection(Shard shard) {

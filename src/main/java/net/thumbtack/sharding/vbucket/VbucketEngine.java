@@ -40,7 +40,7 @@ public class VbucketEngine implements EventProcessor, KeyMapper {
         mapper = new VbucketMapper(bucketToShardId, new KeyMapper() {
             @Override
             public int shard(long key) {
-                return (int) (key / bucketSize + 1);
+                return (int) (key / bucketSize);
             }
         });
         shards = new ConcurrentHashMap<Integer, Shard>(index(bucketToShard.values(), new F<Shard, Integer>() {
@@ -68,35 +68,27 @@ public class VbucketEngine implements EventProcessor, KeyMapper {
         Vbucket bucket = buckets.get(bucketId);
         Shard fromShard = shards.get(mapper.shard(bucket.fromId));
         Shard toShard = shards.get(toShardId);
-        logger.debug("Starting migration of bucket {} from shard {} to shard {}", bucketId, fromShard.getId(), toShardId);
+        logger.info("Starting migration of bucket {} from shard {} to shard {}", bucketId, fromShard.getId(), toShardId);
         final VbucketMigration migration = new VbucketMigration(bucket, fromShard, toShard, helper);
-        final Future<Boolean> future = executor.submit(new Callable<Boolean>() {
+        executor.submit(new Callable<Void>() {
             @Override
-            public Boolean call() throws Exception {
+            public Void call() throws Exception {
                 if (queryLock != null) {
                     queryLock.lock();
                 }
                 try {
-                    return migration.call();
+                    if (migration.call()) {
+                        if (listener != null) {
+                            listener.onEvent(new VbucketMovedEvent(bucketId, toShardId));
+                        }
+                        migration.finish();
+                    }
                 } finally {
                     if (queryLock != null) {
                         queryLock.unlock();
                     }
                 }
-            }
-        });
-        waitThread.execute(new Runnable() {
-            @Override
-            public void run() {
-                boolean success = false;
-                try {
-                    success = future.get();
-                } catch (Exception e) {
-                    logger.error("Error during wait of bucket migration", e);
-                }
-                if (success && listener != null) {
-                    listener.onEvent(new VbucketMovedEvent(bucketId, toShardId));
-                }
+                return null;
             }
         });
     }

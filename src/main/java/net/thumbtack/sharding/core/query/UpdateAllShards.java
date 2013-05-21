@@ -27,7 +27,9 @@ public class UpdateAllShards implements Query {
                         result = closure.call(connection);
                         connection.commit();
                     } catch (RuntimeException e) {
-                        connection.rollback();
+                        try {
+                            connection.rollback();
+                        } catch (Exception ignored) {}
                         throw e;
                     } finally {
                         connection.close();

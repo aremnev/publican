@@ -6,11 +6,13 @@ import com.hazelcast.config.NetworkConfig;
 import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.core.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 public class HazelcastShardingCluster implements ShardingCluster {
 
+    private static final int DEFAULT_PORT = 5900;
     private static final String EVENT_TOPIC_NAME = "default";
     private static final String LOCK_NAME = "query_lock";
     private static final String IS_LOCKED_VALUE_NAME = "is_locked_value";
@@ -18,7 +20,27 @@ public class HazelcastShardingCluster implements ShardingCluster {
     private HazelcastInstance hazelcast;
     private QueryLock queryLock;
 
-    public HazelcastShardingCluster(int port, List<String> hosts, List<Long> queriesToBlock) {
+    private int port = DEFAULT_PORT;
+    private List<String> hosts = new ArrayList<String>();
+    private List<Long> queriesToLock = new ArrayList<Long>();
+
+    public HazelcastShardingCluster setPort(int port) {
+        this.port = port;
+        return this;
+    }
+
+    public HazelcastShardingCluster addHost(String host) {
+        hosts.add(host);
+        return this;
+    }
+
+    public HazelcastShardingCluster addQueryToLock(long queryId) {
+        queriesToLock.add(queryId);
+        return this;
+    }
+
+    @Override
+    public ShardingCluster start() {
         Config cfg = new Config();
         NetworkConfig networkConfig = cfg.getNetworkConfig();
         networkConfig.setPort(port);
@@ -55,7 +77,8 @@ public class HazelcastShardingCluster implements ShardingCluster {
             }
         };
 
-        queryLock = new QueryLock(lock, isLockedValue, queriesToBlock);
+        queryLock = new QueryLock(lock, isLockedValue, queriesToLock);
+        return this;
     }
 
     @Override

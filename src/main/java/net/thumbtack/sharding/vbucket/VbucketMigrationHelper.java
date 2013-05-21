@@ -8,7 +8,7 @@ public interface VbucketMigrationHelper<T> {
 
     QueryClosure<Long> getLastModificationTime(long idFrom, long idTo);
 
-    QueryClosure<List<Long>> getModifiedAfter(long timestamp);
+    QueryClosure<List<Long>> getModifiedAfter(long idFrom, long idTo, long timestamp);
 
     QueryClosure<T> getEntity(long id);
 

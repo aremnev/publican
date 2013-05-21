@@ -2,19 +2,21 @@ package net.thumbtack.sharding.test.redis;
 
 import net.thumbtack.helper.Util;
 import net.thumbtack.sharding.ShardingFacade;
+import net.thumbtack.sharding.Storage;
 import net.thumbtack.sharding.core.ShardingBuilder;
 import net.thumbtack.sharding.core.query.Query;
 import net.thumbtack.sharding.core.query.QueryClosure;
 import net.thumbtack.sharding.impl.redis.RedisConnection;
 import net.thumbtack.sharding.impl.redis.RedisShard;
-import net.thumbtack.sharding.test.common.AbstractStorage;
 import redis.clients.jedis.Jedis;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-public class RedisStorage extends AbstractStorage {
+import static net.thumbtack.sharding.ShardingFacade.getQueryMap;
+
+public class RedisStorage implements Storage {
 
     private ShardingFacade sharding;
 

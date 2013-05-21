@@ -3,18 +3,20 @@ package net.thumbtack.sharding.test.memcached;
 import net.rubyeye.xmemcached.MemcachedClient;
 import net.thumbtack.helper.Util;
 import net.thumbtack.sharding.ShardingFacade;
+import net.thumbtack.sharding.Storage;
 import net.thumbtack.sharding.core.ShardingBuilder;
 import net.thumbtack.sharding.core.query.Query;
 import net.thumbtack.sharding.core.query.QueryClosure;
 import net.thumbtack.sharding.impl.memcached.MemcachedConnection;
 import net.thumbtack.sharding.impl.memcached.MemcachedShard;
-import net.thumbtack.sharding.test.common.AbstractStorage;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-public class MemcachedStorage extends AbstractStorage {
+import static net.thumbtack.sharding.ShardingFacade.getQueryMap;
+
+public class MemcachedStorage implements Storage {
 
     private ShardingFacade sharding;
 

@@ -196,6 +196,15 @@ public class Util {
         return map;
     }
 
+    public static <V> V find(Iterable<V> collection, F<V, Boolean> criteria) {
+        for (V v : collection) {
+            if (criteria.f(v)) {
+                return v;
+            }
+        }
+        return null;
+    }
+
     /**
      * Builds a new list by applying a function to all elements of this list.
      * @param list The list.
