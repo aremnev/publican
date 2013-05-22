@@ -69,8 +69,8 @@ public class VbucketMigrationHelperImpl implements VbucketMigrationHelper<Entity
             @Override
             public Void call(Connection connection) throws Exception {
                 java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
-                String sql = ShardedDao.insertStr(entity);
-                sqlConn.createStatement().executeUpdate(sql);
+                sqlConn.createStatement().executeUpdate(ShardedDao.deleteStr(entity.id));
+                sqlConn.createStatement().executeUpdate(ShardedDao.insertStr(entity));
                 return null;
             }
         };

@@ -89,6 +89,10 @@ public class ClusterInstance {
         sharding = new ShardingFacade(builder.build());
     }
 
+    public void shutdown() {
+        cluster.shutdown();
+    }
+
     public boolean startMigrations() {
         logger.info("starting migrations...");
         Random random = new Random();
@@ -107,6 +111,10 @@ public class ClusterInstance {
                     Thread.sleep(100);
                 } catch (InterruptedException ignored) {}
             }
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ignored) {}
         }
     }
 

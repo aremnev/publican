@@ -1,6 +1,5 @@
 package net.thumbtack.sharding.test.cluster;
 
-import net.thumbtack.helper.Util;
 import net.thumbtack.sharding.core.query.QueryClosure;
 import net.thumbtack.sharding.impl.jdbc.JdbcConnection;
 import net.thumbtack.sharding.test.common.Entity;
@@ -8,39 +7,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
+import static junit.framework.Assert.assertEquals;
 import static net.thumbtack.sharding.TestUtil.generateUID;
 
 public class ClusterTest {
 
     private static final Logger logger = LoggerFactory.getLogger(ClusterTest.class);
 
+    private static ClusterInstance clusterInstance;
+
     private ShardedDao dao;
 
     private List<Entity> entities;
 
     public static void main(String[] args) throws Exception {
-        ClusterInstance clusterInstance = new ClusterInstance();
+        clusterInstance = new ClusterInstance();
         clusterInstance.start();
         clusterInstance.getSharding().updateAll(new QueryClosure<Object>() {
             @Override
             public Object call(net.thumbtack.sharding.core.query.Connection connection) throws Exception {
                 Connection sqlConn = ((JdbcConnection) connection).getConnection();
                 sqlConn.createStatement().execute("DROP TABLE IF EXISTS `sharded`;");
-                return null;
-            }
-        });
-        clusterInstance.getSharding().updateAll(new QueryClosure<Object>() {
-            @Override
-            public Object call(net.thumbtack.sharding.core.query.Connection connection) throws Exception {
-                Connection sqlConn = ((JdbcConnection) connection).getConnection();
                 sqlConn.createStatement().execute("CREATE TABLE `sharded` (\n" +
                         "  `id` bigint(20) unsigned NOT NULL,\n" +
                         "  `text` varchar(255) COLLATE utf8_bin NOT NULL,\n" +
@@ -52,9 +48,62 @@ public class ClusterTest {
             }
         });
         ShardedDao dao = new ShardedDao(clusterInstance.getSharding());
-        ClusterTest test = new ClusterTest(dao);
+        final ClusterTest test = new ClusterTest(dao);
         test.init();
         Process anotherInstance = startAnotherInstance();
+        Thread.sleep(10000);
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        Future<Void> futureSelect = executor.submit(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                test.testSelects(); return null;
+            }
+        });
+        futureSelect.get();
+
+        Future<Void> futureDelete = executor.submit(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                test.testDeletes(); return null;
+            }
+        });
+        futureDelete.get();
+
+        anotherInstance.destroy();
+        clusterInstance.shutdown();
+    }
+
+    private void testDeletes() {
+        Random random = new Random();
+        int steps = 1000;
+        for (int i = 0; i < steps; i++) {
+            Entity e = entities.get(random.nextInt(entities.size()));
+            dao.delete(e);
+            Entity selected = clusterInstance.getSharding().select(dao.getSelectClosure(e.id));
+            assertEquals(null, selected);
+            dao.insert(e);
+
+            double p = ((double) i / steps) * 100;
+            if (Math.floor(p) == p) {
+                logger.info("testDeletes " + p + "%");
+            }
+        }
+    }
+
+    private void testSelects() {
+        Random random = new Random();
+        int steps = 10000;
+        for (int i = 0; i < steps; i++) {
+            Entity e = entities.get(random.nextInt(entities.size()));
+            Entity selected = dao.select(e.id);
+            assertEquals(e, selected);
+
+            double p = ((double) i / steps) * 100;
+            if (Math.floor(p) == p) {
+                logger.info("testSelects " + p + "%");
+            }
+        }
     }
 
     private static Process startAnotherInstance() throws Exception {
@@ -63,31 +112,9 @@ public class ClusterTest {
         String path = System.getProperty("java.home") + separator + "bin" + separator + "java";
         ProcessBuilder processBuilder = new ProcessBuilder(path, "-cp", classpath, ClusterInstance.class.getCanonicalName());
         final Process process = processBuilder.start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        logger.info("Another instance " + line);
-                    }
-                } catch (Exception ignored) {}
-            }
-        }).start();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        logger.info("Another instance " + line);
-                    }
-                } catch (Exception ignored) {}
-            }
-        }).start();
+        // read process output
+        new Thread(new OutStream(process.getInputStream())).start();
+        new Thread(new OutStream(process.getErrorStream())).start();
         return process;
     }
 
@@ -99,12 +126,38 @@ public class ClusterTest {
         dao.deleteAll();
         logger.info("initialising...");
         RandomString randomString = new RandomString(new Random(), 16);
-        entities = new ArrayList<Entity>(1000);
-        for (int i = 0; i < 1000; i++) {
+        int entitiesCount = 1000;
+        entities = Collections.synchronizedList(new ArrayList<Entity>(entitiesCount));
+        for (int i = 0; i < entitiesCount; i++) {
             entities.add(new Entity(generateUID(), randomString.nextString(), new Date()));
         }
         dao.insert(entities);
+        entities.clear();
+        entities.addAll(dao.selectAll());
+        assertEquals(entitiesCount, entities.size());
         logger.info("initialising finished");
+    }
+
+    private static class OutStream implements Runnable {
+
+        private InputStream inputStream;
+
+        public OutStream(InputStream inputStream) {
+            this.inputStream = inputStream;
+        }
+
+        @Override
+        public void run() {
+            try {
+                BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+                String line;
+                while ((line = br.readLine()) != null) {
+                    logger.info("Another instance " + line);
+                }
+            } catch (Exception e) {
+                logger.error("Error during reading stream", e);
+            }
+        }
     }
 
     private static class RandomString {

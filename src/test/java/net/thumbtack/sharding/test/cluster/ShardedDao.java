@@ -29,15 +29,7 @@ public class ShardedDao implements EntityDao {
 
     @Override
     public Entity select(final long id) {
-        return sharding.selectSpec(id, new QueryClosure<Entity>() {
-            @Override
-            public Entity call(Connection connection) throws Exception {
-                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
-                String sql = "SELECT * FROM `sharded` WHERE `id` = " + id + ";";
-                ResultSet resultSet = sqlConn.prepareStatement(sql).executeQuery();
-                return resultSet.next() ? parseEntity.f(resultSet) : null;
-            }
-        });
+        return sharding.selectSpec(id, getSelectClosure(id));
     }
 
     @Override
@@ -220,6 +212,18 @@ public class ShardedDao implements EntityDao {
             }
         }
     };
+
+    public QueryClosure<Entity> getSelectClosure(final long id) {
+        return new QueryClosure<Entity>() {
+            @Override
+            public Entity call(Connection connection) throws Exception {
+                java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
+                String sql = "SELECT * FROM `sharded` WHERE `id` = " + id + ";";
+                ResultSet resultSet = sqlConn.prepareStatement(sql).executeQuery();
+                return resultSet.next() ? parseEntity.f(resultSet) : null;
+            }
+        };
+    }
 
     public static String insertStr(Entity entity) {
         Timestamp time  = new Timestamp(entity.date.getTime());

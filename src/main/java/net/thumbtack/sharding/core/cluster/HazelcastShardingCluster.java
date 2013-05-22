@@ -82,6 +82,11 @@ public class HazelcastShardingCluster implements ShardingCluster {
     }
 
     @Override
+    public void shutdown() {
+        hazelcast.getLifecycleService().shutdown();
+    }
+
+    @Override
     public QueryLock getQueryLock() {
         return queryLock;
     }
