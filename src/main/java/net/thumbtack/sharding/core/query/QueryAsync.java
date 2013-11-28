@@ -58,7 +58,9 @@ public abstract class QueryAsync implements Query {
                         }
                     } catch (Throwable t) {
                         if (isUpdate()) {
-                            connection.rollback();
+                            try {
+                                connection.rollback();
+                            } catch (Exception ignored) {}
                         }
                         errors.add(new QueryError(connection.toString(), t, currentThread.getStackTrace()));
                     } finally {
@@ -99,7 +101,6 @@ public abstract class QueryAsync implements Query {
         return resultValue;
     }
 
-    @Override
     public boolean isUpdate() {
         return false;
     }

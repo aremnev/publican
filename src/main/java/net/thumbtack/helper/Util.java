@@ -181,19 +181,28 @@ public class Util {
     }
 
     /**
-     * Maps the list to the map with the given mapping function.
-     * @param list The list to map.
+     * Maps the collection to the map with the given mapping function.
+     * @param collection The collection to map.
      * @param mapping The mapping function.
      * @param <K> The key type.
      * @param <V> The value type.
      * @return The map.
      */
-    public static <K, V> Map<K, V> index(List<V> list, F<V, K> mapping) {
-        Map<K, V> map = new HashMap<K, V>(list.size());
-        for (V v : list) {
+    public static <K, V> Map<K, V> index(Collection<V> collection, F<V, K> mapping) {
+        Map<K, V> map = new HashMap<K, V>(collection.size());
+        for (V v : collection) {
             map.put(mapping.f(v), v);
         }
         return map;
+    }
+
+    public static <V> V find(Iterable<V> collection, F<V, Boolean> criteria) {
+        for (V v : collection) {
+            if (criteria.f(v)) {
+                return v;
+            }
+        }
+        return null;
     }
 
     /**

@@ -27,7 +27,9 @@ public class UpdateAllShards implements Query {
                         result = closure.call(connection);
                         connection.commit();
                     } catch (RuntimeException e) {
-                        connection.rollback();
+                        try {
+                            connection.rollback();
+                        } catch (Exception ignored) {}
                         throw e;
                     } finally {
                         connection.close();
@@ -44,10 +46,5 @@ public class UpdateAllShards implements Query {
             }
         }
         return result;
-    }
-
-    @Override
-    public boolean isUpdate() {
-        return true;
     }
 }

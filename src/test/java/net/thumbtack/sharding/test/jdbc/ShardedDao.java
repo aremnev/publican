@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static net.thumbtack.sharding.SqlUtil.*;
+import static net.thumbtack.sharding.TestUtil.*;
 import static net.thumbtack.helper.Util.*;
 
 public class ShardedDao implements EntityDao {
@@ -33,7 +33,7 @@ public class ShardedDao implements EntityDao {
             @Override
             public Entity call(Connection connection) throws Exception {
                 java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
-                String sql = "SELECT * FROM `common` WHERE `id` = " + id + ";";
+                String sql = "SELECT * FROM `sharded` WHERE `id` = " + id + ";";
                 ResultSet resultSet = sqlConn.prepareStatement(sql).executeQuery();
                 return resultSet.next() ? parseEntity.f(resultSet) : null;
             }
@@ -52,7 +52,7 @@ public class ShardedDao implements EntityDao {
                     idsSrt.append(id).append(",");
                 }
                 idsSrt.deleteCharAt(idsSrt.length() - 1);
-                String sql = "SELECT * FROM `common` WHERE `id` IN (" + idsSrt + ");";
+                String sql = "SELECT * FROM `sharded` WHERE `id` IN (" + idsSrt + ");";
                 ResultSet resultSet = sqlConn.prepareStatement(sql).executeQuery();
                 return parseEntities(resultSet, parseEntity);
             }
@@ -65,7 +65,7 @@ public class ShardedDao implements EntityDao {
             @Override
             public List<Entity> call(Connection connection) throws Exception {
                 java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
-                String sql = "SELECT * FROM `common`;";
+                String sql = "SELECT * FROM `sharded`;";
                 ResultSet resultSet = sqlConn.prepareStatement(sql).executeQuery();
                 return parseEntities(resultSet, parseEntity);
             }
@@ -120,7 +120,7 @@ public class ShardedDao implements EntityDao {
             public Boolean call(Connection connection) throws Exception {
                 java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
                 Timestamp time  = new Timestamp(entity.date.getTime());
-                String sql = "UPDATE `common` SET `text` = '"+ entity.text +"', `date` = '"+ time +"' WHERE `id` = "+ entity.id;
+                String sql = "UPDATE `sharded` SET `text` = '"+ entity.text +"', `date` = '"+ time +"' WHERE `id` = "+ entity.id;
                 int upd = sqlConn.prepareStatement(sql).executeUpdate();
                 return upd > 0;
             }
@@ -199,7 +199,7 @@ public class ShardedDao implements EntityDao {
             @Override
             public Boolean call(Connection connection) throws Exception {
                 java.sql.Connection sqlConn = ((JdbcConnection) connection).getConnection();
-                String sql = "DELETE FROM `common`";
+                String sql = "DELETE FROM `sharded`";
                 int upd = sqlConn.prepareStatement(sql).executeUpdate();
                 return upd > 0;
             }
@@ -223,15 +223,15 @@ public class ShardedDao implements EntityDao {
 
     private String insertStr(Entity entity) {
         Timestamp time  = new Timestamp(entity.date.getTime());
-        return "INSERT INTO `common` (`id`,`text`, `date`) VALUES (" + entity.id + ",'" + entity.text + "', '" + time + "');";
+        return "INSERT INTO `sharded` (`id`,`text`, `date`) VALUES (" + entity.id + ",'" + entity.text + "', '" + time + "');";
     }
 
     private String updateStr(Entity entity) {
         Timestamp time = new Timestamp(entity.date.getTime());
-        return "UPDATE `common` SET `text` = '" + entity.text + "', `date` = '" + time + "' WHERE `id` = " + entity.id;
+        return "UPDATE `sharded` SET `text` = '" + entity.text + "', `date` = '" + time + "' WHERE `id` = " + entity.id;
     }
 
     private String deleteStr(long id) {
-        return "DELETE FROM `common` WHERE `id` = " + id;
+        return "DELETE FROM `sharded` WHERE `id` = " + id;
     }
 }

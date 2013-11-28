@@ -1,13 +1,11 @@
 package net.thumbtack.sharding.core;
 
 import fj.F;
-import net.thumbtack.sharding.core.map.ModuloKeyMapper;
+import net.thumbtack.sharding.core.cluster.EventProcessor;
+import net.thumbtack.sharding.core.cluster.ShardingCluster;
 import net.thumbtack.sharding.core.query.Query;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static net.thumbtack.helper.Util.*;
 
@@ -18,18 +16,19 @@ public class ShardingBuilder {
 
     private static final int DEFAULT_WORK_THREADS = 10;
 
-    private ModuloKeyMapper keyMapper;
+    private KeyMapper keyMapper;
     private int workTreads = DEFAULT_WORK_THREADS;
     private List<Shard> shards = new ArrayList<Shard>();
     private Map<Long, Query> queryMap = new HashMap<Long, Query>();
+    private ShardingCluster shardingCluster;
 
     /**
-     * Adds one more shard.
-     * @param shard The shard.
+     * Sets shards.
+     * @param shards The shards.
      * @return The builder.
      */
-    public ShardingBuilder addShard(Shard shard) {
-        shards.add(shard);
+    public ShardingBuilder setShards(Collection<? extends Shard> shards) {
+        this.shards = new ArrayList<Shard>(shards);
         return this;
     }
 
@@ -49,7 +48,7 @@ public class ShardingBuilder {
      * @param keyMapper The key mapper.
      * @return The builder.
      */
-    public ShardingBuilder setKeyMapper(ModuloKeyMapper keyMapper) {
+    public ShardingBuilder setKeyMapper(KeyMapper keyMapper) {
         this.keyMapper = keyMapper;
         return this;
     }
@@ -61,6 +60,11 @@ public class ShardingBuilder {
      */
     public ShardingBuilder setWorkTreads(int workTreads) {
         this.workTreads = workTreads;
+        return this;
+    }
+
+    public ShardingBuilder setShardingCluster(ShardingCluster shardingCluster) {
+        this.shardingCluster = shardingCluster;
         return this;
     }
 
@@ -77,7 +81,15 @@ public class ShardingBuilder {
                 }
             }));
         }
-        ShardResolver shardResolver = new ShardResolver(shards, keyMapper);
-        return new Sharding(queryMap, shardResolver, workTreads);
+
+        Sharding sharding = new Sharding(queryMap, shards, keyMapper, workTreads);
+        if (shardingCluster != null) {
+            shardingCluster.addEventProcessor(sharding);
+            if (keyMapper instanceof EventProcessor) {
+                shardingCluster.addEventProcessor((EventProcessor) keyMapper);
+            }
+            sharding.setQueryLock(shardingCluster.getQueryLock());
+        }
+        return sharding;
     }
 }

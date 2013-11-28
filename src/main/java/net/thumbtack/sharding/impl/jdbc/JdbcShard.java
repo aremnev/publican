@@ -3,6 +3,7 @@ package net.thumbtack.sharding.impl.jdbc;
 import net.thumbtack.sharding.core.query.Connection;
 import net.thumbtack.sharding.core.Shard;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -10,24 +11,26 @@ import java.util.*;
  */
 public class JdbcShard implements Shard {
 
+    private static final long serialVersionUID = -6856118381704330390L;
+
     private static final String SHARD = "shard.";
     private static final String DRIVER = ".driver";
     private static final String URL = ".url";
     private static final String USER = ".user";
     private static final String PASSWORD = ".password";
 
-    private final int id;
-    private final String driver;
-    private final String url;
-    private final String user;
-    private final String password;
+    private int id;
+    private String driver;
+    private String url;
+    private String user;
+    private String password;
 
     /**
      * Builds list of jdbc shard configurations from properties.
      * @param props The properties.
      * @return The list of jdbc shard configurations.
      */
-    public static List<JdbcShard> fromProperties(Properties props) {
+    public static List<Shard> fromProperties(Properties props) {
         Set<Integer> shardIds = new HashSet<Integer>();
         for (String name : props.stringPropertyNames()) {
             if (name.startsWith(SHARD)) {
@@ -35,7 +38,7 @@ public class JdbcShard implements Shard {
                 shardIds.add(id);
             }
         }
-        List<JdbcShard> result = new ArrayList<JdbcShard>(shardIds.size());
+        List<Shard> result = new ArrayList<Shard>(shardIds.size());
         for (int shardId : shardIds) {
             String driver = props.getProperty(SHARD + shardId + DRIVER);
             String url = props.getProperty(SHARD + shardId + URL);
@@ -79,5 +82,23 @@ public class JdbcShard implements Shard {
                 ", url='" + url + '\'' +
                 ", driver='" + driver + '\'' +
                 '}';
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeInt(id);
+        out.writeObject(driver);
+        out.writeObject(url);
+        out.writeObject(user);
+        out.writeObject(password);
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        id = in.readInt();
+        driver = (String) in.readObject();
+        url = (String) in.readObject();
+        user = (String) in.readObject();
+        password = (String) in.readObject();
     }
 }

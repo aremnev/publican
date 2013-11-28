@@ -1,9 +1,11 @@
 package net.thumbtack.sharding;
 
 import net.thumbtack.sharding.core.Sharding;
-import net.thumbtack.sharding.core.query.QueryClosure;
+import net.thumbtack.sharding.core.query.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ShardingFacade {
 
@@ -66,5 +68,31 @@ public class ShardingFacade {
     // the result of the method is the last successful closure call result
     public <U> U updateAll(List<Long> ids, QueryClosure<U> closure) {
         return sharding.execute(UPDATE_ALL_SHARDS, ids, closure);
+    }
+
+    public static Map<Long, Query> getQueryMap(boolean isSync) {
+        return isSync ?
+                new HashMap<Long, Query>() {
+                    {
+                        put(SELECT_SPEC_SHARD, new SelectSpecShard());
+                        put(SELECT_SHARD, new SelectShard());
+                        put(SELECT_ANY_SHARD, new SelectAnyShard());
+                        put(SELECT_ALL_SHARDS, new SelectAllShards());
+                        put(SELECT_ALL_SHARDS_SUM, new SelectAllShardsSum());
+                        put(UPDATE_SPEC_SHARD, new UpdateSpecShard());
+                        put(UPDATE_ALL_SHARDS, new UpdateAllShards());
+                    }
+                } :
+                new HashMap<Long, Query>() {
+                    {
+                        put(SELECT_SPEC_SHARD, new SelectSpecShard());
+                        put(SELECT_SHARD, new SelectShardAsync());
+                        put(SELECT_ANY_SHARD, new SelectAnyShard());
+                        put(SELECT_ALL_SHARDS, new SelectAllShardsAsync());
+                        put(SELECT_ALL_SHARDS_SUM, new SelectAllShardsSumAsync());
+                        put(UPDATE_SPEC_SHARD, new UpdateSpecShard());
+                        put(UPDATE_ALL_SHARDS, new UpdateAllShardsAsync());
+                    }
+                };
     }
 }

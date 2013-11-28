@@ -1,6 +1,4 @@
-package net.thumbtack.sharding.core.map;
-
-import java.util.List;
+package net.thumbtack.sharding.core;
 
 /**
  * Maps key to some shard.

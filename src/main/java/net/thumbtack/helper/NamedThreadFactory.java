@@ -1,7 +1,5 @@
 package net.thumbtack.helper;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,8 +26,7 @@ public class NamedThreadFactory implements ThreadFactory {
     }
 
     @Override
-    @Nonnull
-    public Thread newThread(@Nullable Runnable r) {
+    public Thread newThread(Runnable r) {
         Thread t = new Thread(group, r,
                 namePrefix + threadNumber.getAndIncrement(),
                 0);

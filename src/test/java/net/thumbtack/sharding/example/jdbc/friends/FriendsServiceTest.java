@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 import static net.thumbtack.helper.Util.getResourceAsReader;
 
 public class FriendsServiceTest {
