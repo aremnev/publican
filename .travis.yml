@@ -2,4 +2,4 @@ language: java
 
 install: mvn install -DskipTests=true -B -f source/pom.xml
 
-test: mvn test -B -f source/pom.xml
+script: mvn test -B -f source/pom.xml
