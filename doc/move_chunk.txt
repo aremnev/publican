@@ -1,0 +1,10 @@
+Client -> Configuration : moveChunk(chunk, shardTo)
+Configuration -> Hazelcast : lockConfiguration
+Configuration -> Migration : migrate(chunk, shardTo)
+Configuration -> Hazelcast : checkVersion(version)
+Configuration -> "Persistent\nStorage" : updateConfiguration
+Configuration ->> Hazelcast : moveEvent(chunk, shardTo, newVersion)
+Configuration -> Hazelcast : unlockConfiguration
+Hazelcast -> Configuration : moveEvent(chunk, shardTo, newVersion)
+note left: not in the same thread
+Configuration -> Configuration : update(chunk, shardTo, newVersion)

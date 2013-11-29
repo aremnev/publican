@@ -1,0 +1,19 @@
+Configuration -> Migration : migrate(chunk, shardTo)
+Migration -> MigrationHelper : getLastModificationTime(idFrom, idTo)
+MigrationHelper --> Migration : lastModificationF
+loop while modified after is not empty
+  Migration -> SelectQuery: execute(lastModificationF)
+  SelectQuery --> Migration : lastModificationTime
+  Migration -> MigrationHelper : getModifiedAfter(idFrom, idTo, timeFrom)
+  MigrationHelper --> Migration : modifiedAfterF
+  Migration -> SelectQuery: execute(modifiedAfterF)
+  SelectQuery --> Migration : ids
+  loop for each id
+    Migration -> MigrationHelper : getEntity(id)
+    MigrationHelper --> Migration : getEntityF
+    Migration -> SelectQuery: execute(getEntityF)
+    Migration -> MigrationHelper : putEntity(entity)
+    MigrationHelper --> Migration : putEntityF
+    Migration -> UpdateQuery: execute(putEntityF)
+  end
+end
