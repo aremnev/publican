@@ -3,6 +3,7 @@ package net.thumbtack.shardcon.chunk;
 import fj.F;
 import net.thumbtack.helper.NamedThreadFactory;
 import net.thumbtack.shardcon.core.KeyMapper;
+import net.thumbtack.shardcon.core.QueryLock;
 import net.thumbtack.shardcon.core.cluster.*;
 import net.thumbtack.shardcon.core.Shard;
 import org.slf4j.Logger;
@@ -57,9 +58,8 @@ public class ChunkEngine implements EventProcessor, KeyMapper {
         executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("chunk-migration"));
     }
 
-    public void setShardingCluster(ShardingCluster cluster) {
-        queryLock = cluster.getQueryLock();
-        cluster.addEventProcessor(this);
+    public void setQueryLock(QueryLock queryLock) {
+        this.queryLock = queryLock;
     }
 
     public void migrate(final int bucketId, final int toShardId, MigrationHelper helper) {

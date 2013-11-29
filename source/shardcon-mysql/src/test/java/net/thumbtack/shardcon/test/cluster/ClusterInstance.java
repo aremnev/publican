@@ -7,18 +7,17 @@ import net.thumbtack.shardcon.chunk.ChunkEngine;
 import net.thumbtack.shardcon.chunk.MigrationHelper;
 import net.thumbtack.shardcon.chunk.MigrationInfo;
 import net.thumbtack.shardcon.chunk.MovedEvent;
+import net.thumbtack.shardcon.core.QueryLock;
 import net.thumbtack.shardcon.core.Shard;
 import net.thumbtack.shardcon.core.ShardingBuilder;
 import net.thumbtack.shardcon.core.cluster.*;
+import net.thumbtack.shardcon.core.cluster.EventListener;
 import net.thumbtack.shardcon.core.query.Query;
 import net.thumbtack.shardcon.impl.jdbc.JdbcShard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Random;
+import java.util.*;
 
 import static net.thumbtack.shardcon.ShardingFacade.*;
 import static net.thumbtack.helper.Util.*;
@@ -58,13 +57,20 @@ public class ClusterInstance {
 
         cluster = new HazelcastShardingCluster()
                 .addHost("localhost")
-                .addQueryToLock(SELECT_ALL_SHARDS)
-                .addQueryToLock(SELECT_ALL_SHARDS_SUM)
-                .addQueryToLock(UPDATE_ALL_SHARDS)
-                .addQueryToLock(UPDATE_SPEC_SHARD)
                 .start();
-        chunkEngine.setShardingCluster(cluster);
-        builder.setShardingCluster(cluster);
+        cluster.addEventProcessor(chunkEngine);
+        List<Long> queriesToLock = new ArrayList<>();
+        queriesToLock.add(SELECT_ALL_SHARDS);
+        queriesToLock.add(SELECT_ALL_SHARDS_SUM);
+        queriesToLock.add(UPDATE_ALL_SHARDS);
+        queriesToLock.add(UPDATE_SPEC_SHARD);
+        QueryLock queryLock = new QueryLock(
+                cluster.getLock("queryLock"),
+                cluster.getMutableValue("isQueryLocked", false),
+                queriesToLock
+        );
+        builder.setQueryLock(queryLock);
+        chunkEngine.setQueryLock(queryLock);
 
         cluster.addEventProcessor(new EventProcessor() {
             @Override

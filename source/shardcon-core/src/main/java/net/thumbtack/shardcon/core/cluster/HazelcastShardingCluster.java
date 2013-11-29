@@ -5,6 +5,7 @@ import com.hazelcast.config.JoinConfig;
 import com.hazelcast.config.NetworkConfig;
 import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.core.*;
+import org.apache.commons.lang3.mutable.Mutable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,15 +15,11 @@ public class HazelcastShardingCluster implements ShardingCluster {
 
     private static final int DEFAULT_PORT = 5900;
     private static final String EVENT_TOPIC_NAME = "default";
-    private static final String LOCK_NAME = "query_lock";
-    private static final String IS_LOCKED_VALUE_NAME = "is_locked_value";
 
     private HazelcastInstance hazelcast;
-    private QueryLock queryLock;
 
     private int port = DEFAULT_PORT;
     private List<String> hosts = new ArrayList<>();
-    private List<Long> queriesToLock = new ArrayList<>();
 
     public HazelcastShardingCluster setPort(int port) {
         this.port = port;
@@ -31,11 +28,6 @@ public class HazelcastShardingCluster implements ShardingCluster {
 
     public HazelcastShardingCluster addHost(String host) {
         hosts.add(host);
-        return this;
-    }
-
-    public HazelcastShardingCluster addQueryToLock(long queryId) {
-        queriesToLock.add(queryId);
         return this;
     }
 
@@ -53,31 +45,6 @@ public class HazelcastShardingCluster implements ShardingCluster {
         }
 
         hazelcast = Hazelcast.newHazelcastInstance(cfg);
-
-        Lock lock = hazelcast.getLock(LOCK_NAME);
-        final List<Boolean> isLockedWrapper = hazelcast.getList(IS_LOCKED_VALUE_NAME);
-        lock.lock();
-        try {
-            if (isLockedWrapper.isEmpty()) {
-                isLockedWrapper.add(false);
-            }
-        } finally {
-            lock.unlock();
-        }
-        Value<Boolean> isLockedValue = new Value<Boolean>() {
-
-            @Override
-            public Boolean get() {
-                return isLockedWrapper.get(0);
-            }
-
-            @Override
-            public void set(Boolean value) {
-                isLockedWrapper.set(0, value);
-            }
-        };
-
-        queryLock = new QueryLock(lock, isLockedValue, queriesToLock);
         return this;
     }
 
@@ -87,8 +54,34 @@ public class HazelcastShardingCluster implements ShardingCluster {
     }
 
     @Override
-    public QueryLock getQueryLock() {
-        return queryLock;
+    public Lock getLock(String lockName) {
+        return hazelcast.getLock(lockName);
+    }
+
+    @Override
+    public <T> Mutable<T> getMutableValue(String valueName, T defaultValue) {
+        final List<T> valueWrapper = hazelcast.getList(valueName);
+        Lock lock = hazelcast.getLock(valueName);
+        lock.lock();
+        try {
+            if (valueWrapper.isEmpty()) {
+                valueWrapper.add(defaultValue);
+            }
+        } finally {
+            lock.unlock();
+        }
+        return new Mutable<T>() {
+
+            @Override
+            public T getValue() {
+                return valueWrapper.get(0);
+            }
+
+            @Override
+            public void setValue(T value) {
+                valueWrapper.set(0, value);
+            }
+        };
     }
 
     @Override

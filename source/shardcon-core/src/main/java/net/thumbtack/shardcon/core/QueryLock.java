@@ -1,4 +1,6 @@
-package net.thumbtack.shardcon.core.cluster;
+package net.thumbtack.shardcon.core;
+
+import org.apache.commons.lang3.mutable.Mutable;
 
 import java.util.HashSet;
 import java.util.List;
@@ -11,13 +13,13 @@ public class QueryLock {
     private Set<Long> queryIds;
     private long timeout;
     private Lock lock;
-    private Value<Boolean> isLocked;
+    private Mutable<Boolean> isLocked;
 
-    public QueryLock(Lock lock, Value<Boolean> isLocked, List<Long> queryIds) {
+    public QueryLock(Lock lock, Mutable<Boolean> isLocked, List<Long> queryIds) {
         this(lock, Long.MAX_VALUE, TimeUnit.MILLISECONDS, isLocked, queryIds);
     }
 
-    public QueryLock(Lock lock, long timeout, TimeUnit timeUnit, Value<Boolean> isLocked, List<Long> queryIds) {
+    public QueryLock(Lock lock, long timeout, TimeUnit timeUnit, Mutable<Boolean> isLocked, List<Long> queryIds) {
         this.lock = lock;
         this.isLocked = isLocked;
         this.timeout = timeUnit.toMillis(timeout);
@@ -27,17 +29,17 @@ public class QueryLock {
     public void lock() {
         if (! queryIds.isEmpty()) {
             lock.lock();
-            isLocked.set(true);
+            isLocked.setValue(true);
         }
     }
 
     public void unlock() {
-        isLocked.set(false);
+        isLocked.setValue(false);
         lock.unlock();
     }
 
     public void await(long queryId) {
-        if (isLocked.get() && ! queryIds.isEmpty() && queryIds.contains(queryId)) {
+        if (isLocked.getValue() && ! queryIds.isEmpty() && queryIds.contains(queryId)) {
             try {
                 if (lock.tryLock(timeout, TimeUnit.MILLISECONDS)) {
                     lock.unlock();

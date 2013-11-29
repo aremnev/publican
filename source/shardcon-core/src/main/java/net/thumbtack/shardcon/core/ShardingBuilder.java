@@ -20,7 +20,7 @@ public class ShardingBuilder {
     private int workTreads = DEFAULT_WORK_THREADS;
     private List<Shard> shards = new ArrayList<>();
     private Map<Long, Query> queryMap = new HashMap<>();
-    private ShardingCluster shardingCluster;
+    private QueryLock queryLock;
 
     /**
      * Sets shards.
@@ -63,8 +63,8 @@ public class ShardingBuilder {
         return this;
     }
 
-    public ShardingBuilder setShardingCluster(ShardingCluster shardingCluster) {
-        this.shardingCluster = shardingCluster;
+    public ShardingBuilder setQueryLock(QueryLock queryLock) {
+        this.queryLock = queryLock;
         return this;
     }
 
@@ -83,13 +83,7 @@ public class ShardingBuilder {
         }
 
         Sharding sharding = new Sharding(queryMap, shards, keyMapper, workTreads);
-        if (shardingCluster != null) {
-            shardingCluster.addEventProcessor(sharding);
-            if (keyMapper instanceof EventProcessor) {
-                shardingCluster.addEventProcessor((EventProcessor) keyMapper);
-            }
-            sharding.setQueryLock(shardingCluster.getQueryLock());
-        }
+        sharding.setQueryLock(queryLock);
         return sharding;
     }
 }
