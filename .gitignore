@@ -1,6 +1,7 @@
-/**/target/
-.idea/
-
+.idea
 *.iml
-sharded-dao.ipr
-sharded-dao.iws
+.project
+.settings
+.classpath
+
+source/**/target

@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>net.thumbtack.shardcon</groupId>
+		<artifactId>shardcon</artifactId>
+		<version>1.0</version>
+	</parent>
+
+	<groupId>net.thumbtack.shardcon</groupId>
+	<artifactId>shardcon-core</artifactId>
+	<version>1.0</version>
+	<name>shardcon-core</name>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.functionaljava</groupId>
+			<artifactId>functionaljava</artifactId>
+			<version>3.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.javasimon</groupId>
+			<artifactId>javasimon-core</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast</artifactId>
+			<version>3.1.1</version>
+		</dependency>
+
+	</dependencies>
+</project>

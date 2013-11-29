@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>net.thumbtack.shardcon</groupId>
+		<artifactId>shardcon</artifactId>
+		<version>1.0</version>
+	</parent>
+
+	<groupId>net.thumbtack.shardcon</groupId>
+	<artifactId>shardcon-memcached</artifactId>
+	<version>1.0</version>
+	<name>shardcon-memcached</name>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>net.thumbtack.shardcon</groupId>
+			<artifactId>shardcon-core</artifactId>
+			<version>1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.googlecode.xmemcached</groupId>
+			<artifactId>xmemcached</artifactId>
+			<version>1.4.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.thimbleware.jmemcached</groupId>
+			<artifactId>jmemcached-core</artifactId>
+			<version>1.0.0</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+</project>
