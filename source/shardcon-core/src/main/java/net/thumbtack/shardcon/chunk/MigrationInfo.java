@@ -1,17 +1,17 @@
-package net.thumbtack.shardcon.vbucket;
+package net.thumbtack.shardcon.chunk;
 
 import java.io.IOException;
 import java.io.Serializable;
 
-public class VbucketMigrationInfo implements Serializable {
+public class MigrationInfo implements Serializable {
 
     private static final long serialVersionUID = -6097527897615684857L;
     private int bucketId;
     private int toShardId;
 
-    public VbucketMigrationInfo() {}
+    public MigrationInfo() {}
 
-    public VbucketMigrationInfo(int bucketId, int toShardId) {
+    public MigrationInfo(int bucketId, int toShardId) {
         this.bucketId = bucketId;
         this.toShardId = toShardId;
     }

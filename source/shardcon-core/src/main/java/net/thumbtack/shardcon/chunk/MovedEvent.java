@@ -1,21 +1,21 @@
-package net.thumbtack.shardcon.vbucket;
+package net.thumbtack.shardcon.chunk;
 
 import net.thumbtack.shardcon.core.cluster.Event;
 
 import java.io.IOException;
 
-public class VbucketMovedEvent implements Event<VbucketMigrationInfo> {
+public class MovedEvent implements Event<MigrationInfo> {
 
     private static final long serialVersionUID = 2754942794625233215L;
 
     public static final long ID = serialVersionUID;
 
-    private VbucketMigrationInfo migrationInfo;
+    private MigrationInfo migrationInfo;
 
-    public VbucketMovedEvent() {}
+    public MovedEvent() {}
 
-    public VbucketMovedEvent(int bucketId, int toShardId) {
-        migrationInfo = new VbucketMigrationInfo(bucketId, toShardId);
+    public MovedEvent(int bucketId, int toShardId) {
+        migrationInfo = new MigrationInfo(bucketId, toShardId);
     }
 
     @Override
@@ -24,7 +24,7 @@ public class VbucketMovedEvent implements Event<VbucketMigrationInfo> {
     }
 
     @Override
-    public VbucketMigrationInfo getEventObject() {
+    public MigrationInfo getEventObject() {
         return migrationInfo;
     }
 
@@ -35,6 +35,6 @@ public class VbucketMovedEvent implements Event<VbucketMigrationInfo> {
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        migrationInfo = (VbucketMigrationInfo) in.readObject();
+        migrationInfo = (MigrationInfo) in.readObject();
     }
 }

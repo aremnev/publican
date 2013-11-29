@@ -1,4 +1,4 @@
-package net.thumbtack.shardcon.vbucket;
+package net.thumbtack.shardcon.chunk;
 
 import java.util.Map;
 

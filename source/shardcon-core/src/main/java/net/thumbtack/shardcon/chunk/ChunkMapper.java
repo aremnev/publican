@@ -1,11 +1,11 @@
-package net.thumbtack.shardcon.vbucket;
+package net.thumbtack.shardcon.chunk;
 
 import net.thumbtack.shardcon.core.KeyMapper;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class VbucketMapper implements KeyMapper {
+public class ChunkMapper implements KeyMapper {
 
     private final Map<Integer, Integer> bucketToShard;
     private final KeyMapper idToBucket;
@@ -25,8 +25,8 @@ public class VbucketMapper implements KeyMapper {
         }
     };
 
-    public VbucketMapper(Map<Integer, Integer> bucketToShard, KeyMapper idToBucket) {
-        this.bucketToShard = new HashMap<Integer, Integer>(bucketToShard);
+    public ChunkMapper(Map<Integer, Integer> bucketToShard, KeyMapper idToBucket) {
+        this.bucketToShard = new HashMap<>(bucketToShard);
         this.idToBucket = idToBucket;
         internalMapper = basicMapper;
     }

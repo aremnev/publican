@@ -32,17 +32,6 @@ public class Util {
     }
 
     /**
-     * Get random element from the array.
-     * @param random The random to use.
-     * @param array The array to choose from.
-     * @param <T> The type of elements.
-     * @return The chosen element.
-     */
-    public static <T> T getRandom(Random random, T[] array) {
-        return array[random.nextInt(array.length)];
-    }
-
-    /**
      * Finds and reads resource into a string.
      *
      * @param resource The resource to find.
@@ -189,7 +178,7 @@ public class Util {
      * @return The map.
      */
     public static <K, V> Map<K, V> index(Collection<V> collection, F<V, K> mapping) {
-        Map<K, V> map = new HashMap<K, V>(collection.size());
+        Map<K, V> map = new HashMap<>(collection.size());
         for (V v : collection) {
             map.put(mapping.f(v), v);
         }
@@ -214,7 +203,7 @@ public class Util {
      * @return A new list resulting from applying the given function f to each element of this list and collecting the results.
      */
     public static <A, B> List<B> map(List<A> list, F<A, B> mapping) {
-        List<B> res = new ArrayList<B>(list.size());
+        List<B> res = new ArrayList<>(list.size());
         for (A a : list) {
             res.add(mapping.f(a));
         }
@@ -242,7 +231,7 @@ public class Util {
      * @return The complete list of fields
      */
     private static Field[] getAllFields(List<Class<?>> classes) {
-        Set<Field> fields = new HashSet<Field>();
+        Set<Field> fields = new HashSet<>();
         for (Class<?> clazz : classes) {
             fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
         }
@@ -255,7 +244,7 @@ public class Util {
      * @return the List of super-classes in order going up from this one
      */
     public static List<Class<?>> getAllSuperclasses(Class<?> clazz) {
-        List<Class<?>> classes = new ArrayList<Class<?>>();
+        List<Class<?>> classes = new ArrayList<>();
 
         Class<?> superclass = clazz.getSuperclass();
         while (superclass != null) {

@@ -1,4 +1,4 @@
-package net.thumbtack.shardcon.vbucket;
+package net.thumbtack.shardcon.chunk;
 
 import fj.F;
 import net.thumbtack.shardcon.core.Shard;
@@ -10,16 +10,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class VbucketMigration implements Callable<Boolean> {
+public class Migration implements Callable<Boolean> {
 
-    private static final Logger logger = LoggerFactory.getLogger(VbucketMigration.class);
+    private static final Logger logger = LoggerFactory.getLogger(Migration.class);
 
-    private final Vbucket bucket;
+    private final Chunk bucket;
     private final Shard toShard;
     private final Shard fromShard;
-    private final VbucketMigrationHelper helper;
+    private final MigrationHelper helper;
 
-    public VbucketMigration(Vbucket bucket, Shard fromShard, Shard toShard, VbucketMigrationHelper helper) {
+    public Migration(Chunk bucket, Shard fromShard, Shard toShard, MigrationHelper helper) {
         this.bucket = bucket;
         this.fromShard = fromShard;
         this.toShard = toShard;

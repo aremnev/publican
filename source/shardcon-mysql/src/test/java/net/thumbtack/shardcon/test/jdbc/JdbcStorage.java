@@ -3,13 +3,13 @@ package net.thumbtack.shardcon.test.jdbc;
 import net.thumbtack.helper.Util;
 import net.thumbtack.shardcon.ShardingFacade;
 import net.thumbtack.shardcon.Storage;
+import net.thumbtack.shardcon.chunk.ChunkEngine;
 import net.thumbtack.shardcon.core.Shard;
 import net.thumbtack.shardcon.core.ShardingBuilder;
 import net.thumbtack.shardcon.core.query.Query;
 import net.thumbtack.shardcon.core.query.QueryClosure;
 import net.thumbtack.shardcon.impl.jdbc.JdbcConnection;
 import net.thumbtack.shardcon.impl.jdbc.JdbcShard;
-import net.thumbtack.shardcon.vbucket.VbucketEngine;
 
 import java.sql.Connection;
 import java.util.List;
@@ -26,11 +26,11 @@ public class JdbcStorage implements Storage {
         Properties shardProps = new Properties();
         shardProps.load(Util.getResourceAsReader("H2-shard.properties"));
         List<Shard> shards = JdbcShard.fromProperties(shardProps);
-        Map<Integer, Shard> bucketToShard = VbucketEngine.mapBucketsFromProperties(shards, shardProps);
-        VbucketEngine vbucketEngine = new VbucketEngine(bucketToShard);
+        Map<Integer, Shard> bucketToShard = ChunkEngine.mapBucketsFromProperties(shards, shardProps);
+        ChunkEngine chunkEngine = new ChunkEngine(bucketToShard);
         ShardingBuilder builder = new ShardingBuilder();
         builder.setShards(shards);
-        builder.setKeyMapper(vbucketEngine);
+        builder.setKeyMapper(chunkEngine);
         Map<Long, Query> queryMap = getQueryMap(isSync);
         for (long queryId : queryMap.keySet()) {
             builder.addQuery(queryId, queryMap.get(queryId));

@@ -16,7 +16,7 @@ public class SelectAllShards implements Query {
     @Override
     @SuppressWarnings("unchecked")
     public <U> U query(QueryClosure<U> closure, List<Connection> shards) {
-        List<Object> result = new LinkedList<Object>();
+        List<Object> result = new LinkedList<>();
         for (Connection connection : shards) {
             if (logger.isDebugEnabled()) {
                 logger.debug(connection.toString());

@@ -14,7 +14,7 @@ public class SelectAllShardsAsync extends QueryAsync {
 
     @Override
     protected <U> Object createResult() {
-        return new ArrayList<Object>();
+        return new ArrayList<>();
     }
 
     @Override

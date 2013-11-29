@@ -1,10 +1,10 @@
-package net.thumbtack.shardcon.vbucket;
+package net.thumbtack.shardcon.chunk;
 
 import net.thumbtack.shardcon.core.query.QueryClosure;
 
 import java.util.List;
 
-public interface VbucketMigrationHelper<T> {
+public interface MigrationHelper<T> {
 
     /**
      * @param idFrom Min id.

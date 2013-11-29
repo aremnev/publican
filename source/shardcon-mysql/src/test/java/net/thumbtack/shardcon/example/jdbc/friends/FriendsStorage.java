@@ -3,11 +3,11 @@ package net.thumbtack.shardcon.example.jdbc.friends;
 import net.thumbtack.helper.Util;
 import net.thumbtack.shardcon.ShardingFacade;
 import net.thumbtack.shardcon.Storage;
+import net.thumbtack.shardcon.chunk.ChunkEngine;
 import net.thumbtack.shardcon.core.*;
 import net.thumbtack.shardcon.core.query.*;
 import net.thumbtack.shardcon.impl.jdbc.JdbcConnection;
 import net.thumbtack.shardcon.impl.jdbc.JdbcShard;
-import net.thumbtack.shardcon.vbucket.VbucketEngine;
 
 import java.sql.Connection;
 import java.util.List;
@@ -24,11 +24,11 @@ public class FriendsStorage implements Storage {
         Properties shardProps = new Properties();
         shardProps.load(Util.getResourceAsReader("H2-shard.properties"));
         List<Shard> shards = JdbcShard.fromProperties(shardProps);
-        Map<Integer, Shard> bucketToShard = VbucketEngine.mapBucketsFromProperties(shards, shardProps);
-        VbucketEngine vbucketEngine = new VbucketEngine(bucketToShard);
+        Map<Integer, Shard> bucketToShard = ChunkEngine.mapBucketsFromProperties(shards, shardProps);
+        ChunkEngine chunkEngine = new ChunkEngine(bucketToShard);
         ShardingBuilder builder = new ShardingBuilder();
         builder.setShards(shards);
-        builder.setKeyMapper(vbucketEngine);
+        builder.setKeyMapper(chunkEngine);
         builder.addQuery(SELECT_SPEC_SHARD, new SelectSpecShard()).
                 addQuery(UPDATE_SPEC_SHARD, new UpdateSpecShard()).
                 addQuery(UPDATE_ALL_SHARDS, new UpdateAllShardsAsync());

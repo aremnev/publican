@@ -1,16 +1,16 @@
 package net.thumbtack.shardcon.test.cluster;
 
+import net.thumbtack.shardcon.chunk.MigrationHelper;
 import net.thumbtack.shardcon.core.query.Connection;
 import net.thumbtack.shardcon.core.query.QueryClosure;
 import net.thumbtack.shardcon.impl.jdbc.JdbcConnection;
 import net.thumbtack.shardcon.test.common.Entity;
-import net.thumbtack.shardcon.vbucket.VbucketMigrationHelper;
 
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VbucketMigrationHelperImpl implements VbucketMigrationHelper<Entity> {
+public class MigrationHelperImpl implements MigrationHelper<Entity> {
 
     @Override
     public QueryClosure<Long> getLastModificationTime(final long idFrom, final long idTo) {

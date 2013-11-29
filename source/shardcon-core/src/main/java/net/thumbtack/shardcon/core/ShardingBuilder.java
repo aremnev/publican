@@ -18,8 +18,8 @@ public class ShardingBuilder {
 
     private KeyMapper keyMapper;
     private int workTreads = DEFAULT_WORK_THREADS;
-    private List<Shard> shards = new ArrayList<Shard>();
-    private Map<Long, Query> queryMap = new HashMap<Long, Query>();
+    private List<Shard> shards = new ArrayList<>();
+    private Map<Long, Query> queryMap = new HashMap<>();
     private ShardingCluster shardingCluster;
 
     /**
@@ -28,7 +28,7 @@ public class ShardingBuilder {
      * @return The builder.
      */
     public ShardingBuilder setShards(Collection<? extends Shard> shards) {
-        this.shards = new ArrayList<Shard>(shards);
+        this.shards = new ArrayList<>(shards);
         return this;
     }
 

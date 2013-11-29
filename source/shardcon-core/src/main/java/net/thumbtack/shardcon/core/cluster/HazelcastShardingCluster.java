@@ -21,8 +21,8 @@ public class HazelcastShardingCluster implements ShardingCluster {
     private QueryLock queryLock;
 
     private int port = DEFAULT_PORT;
-    private List<String> hosts = new ArrayList<String>();
-    private List<Long> queriesToLock = new ArrayList<Long>();
+    private List<String> hosts = new ArrayList<>();
+    private List<Long> queriesToLock = new ArrayList<>();
 
     public HazelcastShardingCluster setPort(int port) {
         this.port = port;

@@ -17,7 +17,7 @@ public class Sharding implements EventProcessor {
 
     private static final long INVALID_ID = Long.MIN_VALUE;
 
-    private Map<Integer, Shard> shards = new ConcurrentHashMap<Integer, Shard>();
+    private Map<Integer, Shard> shards = new ConcurrentHashMap<>();
     private KeyMapper keyMapper;
     private QueryLock queryLock;
 
@@ -112,7 +112,7 @@ public class Sharding implements EventProcessor {
             return resolveAll();
         } else {
             Connection connection = resolveId(id);
-            List<Connection> list = new ArrayList<Connection>(1);
+            List<Connection> list = new ArrayList<>(1);
             list.add(connection);
             return list;
         }
@@ -135,17 +135,17 @@ public class Sharding implements EventProcessor {
      * @return The shards.
      */
     public List<Connection> resolveIds(List<Long> ids) {
-        Map<Integer, List<Long>> shardIds = new HashMap<Integer, List<Long>>();
+        Map<Integer, List<Long>> shardIds = new HashMap<>();
         for (long id : ids) {
             int shardId = keyMapper.shard(id);
             List<Long> cargo = shardIds.get(shardId);
             if (cargo == null) {
-                cargo = new ArrayList<Long>();
+                cargo = new ArrayList<>();
                 shardIds.put(shardId, cargo);
             }
             cargo.add(id);
         }
-        List<Connection> connections = new ArrayList<Connection>(shardIds.size());
+        List<Connection> connections = new ArrayList<>(shardIds.size());
         for (int shardId : shardIds.keySet()) {
             Shard shard = shards.get(shardId);
             Connection connection = shard.getConnection();
@@ -160,7 +160,7 @@ public class Sharding implements EventProcessor {
      * @return The all shards.
      */
     public List<Connection> resolveAll() {
-        List<Connection> result = new ArrayList<Connection>(shards.size());
+        List<Connection> result = new ArrayList<>(shards.size());
         for (Shard shard : shards.values()) {
             result.add(shard.getConnection());
         }

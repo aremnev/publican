@@ -21,7 +21,7 @@ public class QueryLock {
         this.lock = lock;
         this.isLocked = isLocked;
         this.timeout = timeUnit.toMillis(timeout);
-        this.queryIds = new HashSet<Long>(queryIds);
+        this.queryIds = new HashSet<>(queryIds);
     }
 
     public void lock() {
