@@ -1,9 +1,7 @@
 package net.thumbtack.shardcon.core;
 
 import net.thumbtack.helper.NamedThreadFactory;
-import net.thumbtack.shardcon.cluster.EventProcessor;
-import net.thumbtack.shardcon.cluster.NewShardEvent;
-import net.thumbtack.shardcon.cluster.EventListener;
+import net.thumbtack.shardcon.cluster.*;
 import net.thumbtack.shardcon.core.query.*;
 
 import java.io.Serializable;
@@ -15,7 +13,7 @@ import java.util.concurrent.Executors;
 /**
  * The main entry point into the library. It provides the interface to execution of queries.
  */
-public class Sharding implements EventProcessor {
+public class Sharding implements MessageOriginator, MessageListener {
 
     private static final long INVALID_ID = Long.MIN_VALUE;
 
@@ -24,7 +22,7 @@ public class Sharding implements EventProcessor {
     private QueryLock queryLock;
 
     private Map<Long, Query> queryRegistry;
-    private EventListener eventListener;
+    private MessageSender messageSender;
 
     /**
      * Constructor.
@@ -50,8 +48,8 @@ public class Sharding implements EventProcessor {
     public void addShard(Shard shard) {
         if (! shards.containsKey(shard.getId())) {
             shards.put(shard.getId(), shard);
-            if (eventListener != null) {
-                eventListener.onEvent(new NewShardEvent(shard));
+            if (messageSender != null) {
+                messageSender.sendMessage(new NewShardEvent(shard));
             }
         }
     }
@@ -170,14 +168,14 @@ public class Sharding implements EventProcessor {
     }
 
     @Override
-    public void onEvent(Serializable event) {
-        if (event instanceof NewShardEvent) {
-            addShard(((NewShardEvent) event).getShard());
+    public void onMessage(Serializable message) {
+        if (message instanceof NewShardEvent) {
+            addShard(((NewShardEvent) message).getShard());
         }
     }
 
     @Override
-    public void setEventListener(EventListener listener) {
-        eventListener = listener;
+    public void setMessageSender(MessageSender messageSender) {
+        this.messageSender = messageSender;
     }
 }

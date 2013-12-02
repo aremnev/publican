@@ -1,4 +1,4 @@
-package net.thumbtack.shardcon.cluster;
+package net.thumbtack.shardcon.core;
 
 import net.thumbtack.shardcon.core.Shard;
 

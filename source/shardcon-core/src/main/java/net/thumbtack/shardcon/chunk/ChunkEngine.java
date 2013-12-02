@@ -2,9 +2,8 @@ package net.thumbtack.shardcon.chunk;
 
 import fj.F;
 import net.thumbtack.helper.NamedThreadFactory;
-import net.thumbtack.shardcon.cluster.EventListener;
-import net.thumbtack.shardcon.cluster.EventProcessor;
-import net.thumbtack.shardcon.cluster.NewShardEvent;
+import net.thumbtack.shardcon.cluster.*;
+import net.thumbtack.shardcon.core.NewShardEvent;
 import net.thumbtack.shardcon.core.KeyMapper;
 import net.thumbtack.shardcon.core.QueryLock;
 import net.thumbtack.shardcon.core.Shard;
@@ -12,10 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static net.thumbtack.helper.Util.*;
@@ -23,11 +19,11 @@ import static net.thumbtack.helper.Util.*;
 /**
  *
  */
-public class ChunkEngine implements EventProcessor, KeyMapper {
+public class ChunkEngine implements MessageOriginator, MessageListener, KeyMapper {
 
     private static final Logger logger = LoggerFactory.getLogger(ChunkEngine.class);
 
-    private EventListener listener;
+    private MessageSender messageSender;
     private ChunkMapper mapper;
     private Map<Integer, Shard> shards;
     private Map<Integer, Chunk> buckets;
@@ -79,8 +75,8 @@ public class ChunkEngine implements EventProcessor, KeyMapper {
                 }
                 try {
                     if (migration.call()) {
-                        if (listener != null) {
-                            listener.onEvent(new MigrationEvent(bucketId, toShardId));
+                        if (messageSender != null) {
+                            messageSender.sendMessage(new MigrationEvent(bucketId, toShardId));
                         }
                         migration.finish();
                     }
@@ -115,23 +111,23 @@ public class ChunkEngine implements EventProcessor, KeyMapper {
     }
 
     @Override
-    public void onEvent(Serializable event) {
-        if (event instanceof NewShardEvent) {
-            Shard newShard = ((NewShardEvent) event).getShard();
+    public int shard(long key) {
+        return mapper.shard(key);
+    }
+
+    @Override
+    public void onMessage(Serializable message) {
+        if (message instanceof NewShardEvent) {
+            Shard newShard = ((NewShardEvent) message).getShard();
             shards.put(newShard.getId(), newShard);
-        } else if (event instanceof MigrationEvent) {
-            MigrationEvent migrationEvent = (MigrationEvent) event;
+        } else if (message instanceof MigrationEvent) {
+            MigrationEvent migrationEvent = (MigrationEvent) message;
             mapper.moveBucket(migrationEvent.getChunkId(), migrationEvent.getToShardId());
         }
     }
 
     @Override
-    public void setEventListener(EventListener listener) {
-        this.listener = listener;
-    }
-
-    @Override
-    public int shard(long key) {
-        return mapper.shard(key);
+    public void setMessageSender(MessageSender messageSender) {
+        this.messageSender = messageSender;
     }
 }

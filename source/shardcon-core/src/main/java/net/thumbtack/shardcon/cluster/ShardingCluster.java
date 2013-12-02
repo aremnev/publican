@@ -14,5 +14,7 @@ public interface ShardingCluster {
 
     <T> Mutable<T> getMutableValue(String valueName, T defaultValue);
 
-    void addEventProcessor(EventProcessor processor);
+    void addMessageOriginator(MessageOriginator messageOriginator);
+
+    void addMessageListener(MessageListener messageListener);
 }

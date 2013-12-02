@@ -86,18 +86,23 @@ public class HazelcastCluster implements ShardingCluster {
     }
 
     @Override
-    public void addEventProcessor(final EventProcessor processor) {
+    public void addMessageOriginator(MessageOriginator messageOriginator) {
         final ITopic<Serializable> topic = hazelcast.getTopic(EVENT_TOPIC_NAME);
-        topic.addMessageListener(new MessageListener<Serializable>() {
+        messageOriginator.setMessageSender(new MessageSender() {
             @Override
-            public void onMessage(Message<Serializable> message) {
-                processor.onEvent(message.getMessageObject());
+            public void sendMessage(Serializable message) {
+                topic.publish(message);
             }
         });
-        processor.setEventListener(new EventListener() {
+    }
+
+    @Override
+    public void addMessageListener(final MessageListener messageListener) {
+        final ITopic<Serializable> topic = hazelcast.getTopic(EVENT_TOPIC_NAME);
+        topic.addMessageListener(new com.hazelcast.core.MessageListener<Serializable>() {
             @Override
-            public void onEvent(Serializable event) {
-                topic.publish(event);
+            public void onMessage(Message<Serializable> message) {
+                messageListener.onMessage(message);
             }
         });
     }

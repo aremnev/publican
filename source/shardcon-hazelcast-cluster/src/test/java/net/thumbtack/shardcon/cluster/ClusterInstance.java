@@ -7,6 +7,7 @@ import net.thumbtack.shardcon.chunk.MigrationEvent;
 import net.thumbtack.shardcon.chunk.MigrationHelper;
 import net.thumbtack.shardcon.core.QueryLock;
 import net.thumbtack.shardcon.core.Shard;
+import net.thumbtack.shardcon.core.Sharding;
 import net.thumbtack.shardcon.core.ShardingBuilder;
 import net.thumbtack.shardcon.core.query.Query;
 import net.thumbtack.shardcon.impl.jdbc.JdbcShard;
@@ -54,7 +55,8 @@ public class ClusterInstance {
         cluster = new HazelcastCluster()
                 .addHost("localhost")
                 .start();
-        cluster.addEventProcessor(chunkEngine);
+        cluster.addMessageOriginator(chunkEngine);
+        cluster.addMessageListener(chunkEngine);
         List<Long> queriesToLock = new ArrayList<>();
         queriesToLock.add(ShardingFacade.SELECT_ALL_SHARDS);
         queriesToLock.add(ShardingFacade.SELECT_ALL_SHARDS_SUM);
@@ -68,9 +70,9 @@ public class ClusterInstance {
         builder.setQueryLock(queryLock);
         chunkEngine.setQueryLock(queryLock);
 
-        cluster.addEventProcessor(new EventProcessor() {
+        cluster.addMessageListener(new MessageListener() {
             @Override
-            public void onEvent(Serializable event) {
+            public void onMessage(Serializable event) {
                 if (event instanceof MigrationEvent) {
                     final MigrationEvent migrationEvent = (MigrationEvent) event;
                     Shard shard = find(shards, new F<Shard, Boolean>() {
@@ -83,12 +85,12 @@ public class ClusterInstance {
                     completed = true;
                 }
             }
-
-            @Override
-            public void setEventListener(EventListener listener) {}
         });
 
-        sharding = new ShardingFacade(builder.build());
+        Sharding shardingObj = builder.build();
+        sharding = new ShardingFacade(shardingObj);
+        cluster.addMessageOriginator(shardingObj);
+        cluster.addMessageListener(shardingObj);
     }
 
     public void shutdown() {
