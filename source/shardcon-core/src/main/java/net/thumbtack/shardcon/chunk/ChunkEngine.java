@@ -2,7 +2,6 @@ package net.thumbtack.shardcon.chunk;
 
 import fj.F;
 import net.thumbtack.helper.NamedThreadFactory;
-import net.thumbtack.shardcon.cluster.Event;
 import net.thumbtack.shardcon.cluster.EventListener;
 import net.thumbtack.shardcon.cluster.EventProcessor;
 import net.thumbtack.shardcon.cluster.NewShardEvent;
@@ -12,6 +11,7 @@ import net.thumbtack.shardcon.core.Shard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,13 +115,13 @@ public class ChunkEngine implements EventProcessor, KeyMapper {
     }
 
     @Override
-    public void onEvent(Event event) {
-        if (event.getId() == NewShardEvent.ID) {
-            Shard newShard = ((NewShardEvent) event).getEventObject();
+    public void onEvent(Serializable event) {
+        if (event instanceof NewShardEvent) {
+            Shard newShard = ((NewShardEvent) event).getShard();
             shards.put(newShard.getId(), newShard);
-        } else if (event.getId() == MigrationEvent.ID) {
-            MigrationInfo migrationInfo = ((MigrationEvent) event).getEventObject();
-            mapper.moveBucket(migrationInfo.getBucketId(), migrationInfo.getToShardId());
+        } else if (event instanceof MigrationEvent) {
+            MigrationEvent migrationEvent = (MigrationEvent) event;
+            mapper.moveBucket(migrationEvent.getChunkId(), migrationEvent.getToShardId());
         }
     }
 

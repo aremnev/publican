@@ -1,6 +1,8 @@
 package net.thumbtack.shardcon.cluster;
 
+import java.io.Serializable;
+
 public interface EventListener {
 
-    void onEvent(Event event);
+    void onEvent(Serializable event);
 }

@@ -1,12 +1,12 @@
 package net.thumbtack.shardcon.core;
 
 import net.thumbtack.helper.NamedThreadFactory;
-import net.thumbtack.shardcon.cluster.Event;
 import net.thumbtack.shardcon.cluster.EventProcessor;
 import net.thumbtack.shardcon.cluster.NewShardEvent;
 import net.thumbtack.shardcon.cluster.EventListener;
 import net.thumbtack.shardcon.core.query.*;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -170,9 +170,9 @@ public class Sharding implements EventProcessor {
     }
 
     @Override
-    public void onEvent(Event event) {
-        if (event.getId() == NewShardEvent.ID) {
-            addShard(((NewShardEvent) event).getEventObject());
+    public void onEvent(Serializable event) {
+        if (event instanceof NewShardEvent) {
+            addShard(((NewShardEvent) event).getShard());
         }
     }
 

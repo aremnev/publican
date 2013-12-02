@@ -3,12 +3,11 @@ package net.thumbtack.shardcon.cluster;
 import net.thumbtack.shardcon.core.Shard;
 
 import java.io.IOException;
+import java.io.Serializable;
 
-public class NewShardEvent implements Event<Shard> {
+public class NewShardEvent implements Serializable {
 
     private static final long serialVersionUID = 6516336392859700813L;
-
-    public static final long ID = serialVersionUID;
 
     private Shard shard;
 
@@ -18,13 +17,7 @@ public class NewShardEvent implements Event<Shard> {
         this.shard = shard;
     }
 
-    @Override
-    public long getId() {
-        return serialVersionUID;
-    }
-
-    @Override
-    public Shard getEventObject() {
+    public Shard getShard() {
         return shard;
     }
 

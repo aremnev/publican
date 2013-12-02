@@ -7,6 +7,7 @@ import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.core.*;
 import org.apache.commons.lang3.mutable.Mutable;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -86,16 +87,16 @@ public class HazelcastCluster implements ShardingCluster {
 
     @Override
     public void addEventProcessor(final EventProcessor processor) {
-        final ITopic<Event> topic = hazelcast.getTopic(EVENT_TOPIC_NAME);
-        topic.addMessageListener(new MessageListener<Event>() {
+        final ITopic<Serializable> topic = hazelcast.getTopic(EVENT_TOPIC_NAME);
+        topic.addMessageListener(new MessageListener<Serializable>() {
             @Override
-            public void onMessage(Message<Event> message) {
+            public void onMessage(Message<Serializable> message) {
                 processor.onEvent(message.getMessageObject());
             }
         });
         processor.setEventListener(new EventListener() {
             @Override
-            public void onEvent(Event event) {
+            public void onEvent(Serializable event) {
                 topic.publish(event);
             }
         });

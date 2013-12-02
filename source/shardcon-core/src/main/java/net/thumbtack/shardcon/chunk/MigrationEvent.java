@@ -1,40 +1,39 @@
 package net.thumbtack.shardcon.chunk;
 
-import net.thumbtack.shardcon.cluster.Event;
-
 import java.io.IOException;
+import java.io.Serializable;
 
-public class MigrationEvent implements Event<MigrationInfo> {
+public class MigrationEvent implements Serializable {
 
     private static final long serialVersionUID = 2754942794625233215L;
 
-    public static final long ID = serialVersionUID;
-
-    private MigrationInfo migrationInfo;
+    private int chunkId;
+    private int toShardId;
 
     public MigrationEvent() {}
 
-    public MigrationEvent(int bucketId, int toShardId) {
-        migrationInfo = new MigrationInfo(bucketId, toShardId);
+    public MigrationEvent(int chunkId, int toShardId) {
+        this.chunkId = chunkId;
+        this.toShardId = toShardId;
     }
 
-    @Override
-    public long getId() {
-        return serialVersionUID;
+    public int getChunkId() {
+        return chunkId;
     }
 
-    @Override
-    public MigrationInfo getEventObject() {
-        return migrationInfo;
+    public int getToShardId() {
+        return toShardId;
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
-        out.writeObject(migrationInfo);
+        out.writeInt(chunkId);
+        out.writeInt(toShardId);
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        migrationInfo = (MigrationInfo) in.readObject();
+        chunkId = in.readInt();
+        toShardId = in.readInt();
     }
 }

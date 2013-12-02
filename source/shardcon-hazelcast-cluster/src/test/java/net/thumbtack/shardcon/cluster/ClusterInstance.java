@@ -5,7 +5,6 @@ import net.thumbtack.helper.Util;
 import net.thumbtack.shardcon.chunk.ChunkEngine;
 import net.thumbtack.shardcon.chunk.MigrationEvent;
 import net.thumbtack.shardcon.chunk.MigrationHelper;
-import net.thumbtack.shardcon.chunk.MigrationInfo;
 import net.thumbtack.shardcon.core.QueryLock;
 import net.thumbtack.shardcon.core.Shard;
 import net.thumbtack.shardcon.core.ShardingBuilder;
@@ -14,6 +13,7 @@ import net.thumbtack.shardcon.impl.jdbc.JdbcShard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static net.thumbtack.helper.Util.*;
@@ -70,16 +70,16 @@ public class ClusterInstance {
 
         cluster.addEventProcessor(new EventProcessor() {
             @Override
-            public void onEvent(Event event) {
-                if (event.getId() == MigrationEvent.ID) {
-                    final MigrationInfo migrationInfo = ((MigrationEvent) event).getEventObject();
+            public void onEvent(Serializable event) {
+                if (event instanceof MigrationEvent) {
+                    final MigrationEvent migrationEvent = (MigrationEvent) event;
                     Shard shard = find(shards, new F<Shard, Boolean>() {
                         @Override
                         public Boolean f(Shard shard) {
-                            return shard.getId() == migrationInfo.getToShardId();
+                            return shard.getId() == migrationEvent.getToShardId();
                         }
                     });
-                    bucketToShard.put(migrationInfo.getBucketId(), shard);
+                    bucketToShard.put(migrationEvent.getChunkId(), shard);
                     completed = true;
                 }
             }
