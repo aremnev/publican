@@ -32,8 +32,7 @@ public class HazelcastCluster implements ShardingCluster {
         return this;
     }
 
-    @Override
-    public ShardingCluster start() {
+    public HazelcastCluster start() {
         Config cfg = new Config();
         NetworkConfig networkConfig = cfg.getNetworkConfig();
         networkConfig.setPort(port);
@@ -49,7 +48,6 @@ public class HazelcastCluster implements ShardingCluster {
         return this;
     }
 
-    @Override
     public void shutdown() {
         hazelcast.getLifecycleService().shutdown();
     }
@@ -86,17 +84,6 @@ public class HazelcastCluster implements ShardingCluster {
     }
 
     @Override
-    public void addMessageOriginator(MessageOriginator messageOriginator) {
-        final ITopic<Serializable> topic = hazelcast.getTopic(EVENT_TOPIC_NAME);
-        messageOriginator.setMessageSender(new MessageSender() {
-            @Override
-            public void sendMessage(Serializable message) {
-                topic.publish(message);
-            }
-        });
-    }
-
-    @Override
     public void addMessageListener(final MessageListener messageListener) {
         final ITopic<Serializable> topic = hazelcast.getTopic(EVENT_TOPIC_NAME);
         topic.addMessageListener(new com.hazelcast.core.MessageListener<Serializable>() {
@@ -105,5 +92,11 @@ public class HazelcastCluster implements ShardingCluster {
                 messageListener.onMessage(message);
             }
         });
+    }
+
+    @Override
+    public void sendMessage(Serializable message) {
+        ITopic<Serializable> topic = hazelcast.getTopic(EVENT_TOPIC_NAME);
+        topic.publish(message);
     }
 }

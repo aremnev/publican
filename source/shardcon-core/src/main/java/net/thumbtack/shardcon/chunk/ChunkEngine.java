@@ -3,10 +3,7 @@ package net.thumbtack.shardcon.chunk;
 import fj.F;
 import net.thumbtack.helper.NamedThreadFactory;
 import net.thumbtack.shardcon.cluster.*;
-import net.thumbtack.shardcon.core.NewShardEvent;
-import net.thumbtack.shardcon.core.KeyMapper;
-import net.thumbtack.shardcon.core.QueryLock;
-import net.thumbtack.shardcon.core.Shard;
+import net.thumbtack.shardcon.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +16,7 @@ import static net.thumbtack.helper.Util.*;
 /**
  *
  */
-public class ChunkEngine implements MessageOriginator, MessageListener, KeyMapper {
+public class ChunkEngine implements KeyMapper {
 
     private static final Logger logger = LoggerFactory.getLogger(ChunkEngine.class);
 
@@ -57,8 +54,25 @@ public class ChunkEngine implements MessageOriginator, MessageListener, KeyMappe
         executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("chunk-migration"));
     }
 
-    public void setQueryLock(QueryLock queryLock) {
-        this.queryLock = queryLock;
+    public void setShardingCluster(ShardingCluster shardingCluster, List<Long> queriesToLock) {
+        queryLock = new QueryLock(
+                shardingCluster.getLock(ShardingBuilder.QUERY_LOCK_NAME),
+                shardingCluster.getMutableValue(ShardingBuilder.IS_LOCKED_VALUE_NAME, false),
+                queriesToLock
+        );
+        messageSender = shardingCluster;
+        shardingCluster.addMessageListener(new MessageListener() {
+            @Override
+            public void onMessage(Serializable message) {
+                if (message instanceof NewShardEvent) {
+                    Shard newShard = ((NewShardEvent) message).getShard();
+                    shards.put(newShard.getId(), newShard);
+                } else if (message instanceof MigrationEvent) {
+                    MigrationEvent migrationEvent = (MigrationEvent) message;
+                    mapper.moveBucket(migrationEvent.getChunkId(), migrationEvent.getToShardId());
+                }
+            }
+        });
     }
 
     public void migrate(final int bucketId, final int toShardId, MigrationHelper helper) {
@@ -113,21 +127,5 @@ public class ChunkEngine implements MessageOriginator, MessageListener, KeyMappe
     @Override
     public int shard(long key) {
         return mapper.shard(key);
-    }
-
-    @Override
-    public void onMessage(Serializable message) {
-        if (message instanceof NewShardEvent) {
-            Shard newShard = ((NewShardEvent) message).getShard();
-            shards.put(newShard.getId(), newShard);
-        } else if (message instanceof MigrationEvent) {
-            MigrationEvent migrationEvent = (MigrationEvent) message;
-            mapper.moveBucket(migrationEvent.getChunkId(), migrationEvent.getToShardId());
-        }
-    }
-
-    @Override
-    public void setMessageSender(MessageSender messageSender) {
-        this.messageSender = messageSender;
     }
 }

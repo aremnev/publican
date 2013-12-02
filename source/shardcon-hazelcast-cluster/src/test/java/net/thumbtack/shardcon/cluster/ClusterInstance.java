@@ -24,7 +24,7 @@ public class ClusterInstance {
     private static final Logger logger = LoggerFactory.getLogger(ClusterInstance.class);
 
     private ShardingFacade sharding;
-    private ShardingCluster cluster;
+    private HazelcastCluster cluster;
     private ChunkEngine chunkEngine;
 
     private volatile boolean completed = false;
@@ -52,23 +52,21 @@ public class ClusterInstance {
             builder.addQuery(queryId, queryMap.get(queryId));
         }
 
-        cluster = new HazelcastCluster()
-                .addHost("localhost")
-                .start();
-        cluster.addMessageOriginator(chunkEngine);
-        cluster.addMessageListener(chunkEngine);
         List<Long> queriesToLock = new ArrayList<>();
         queriesToLock.add(ShardingFacade.SELECT_ALL_SHARDS);
         queriesToLock.add(ShardingFacade.SELECT_ALL_SHARDS_SUM);
         queriesToLock.add(ShardingFacade.UPDATE_ALL_SHARDS);
         queriesToLock.add(ShardingFacade.UPDATE_SPEC_SHARD);
-        QueryLock queryLock = new QueryLock(
-                cluster.getLock("queryLock"),
-                cluster.getMutableValue("isQueryLocked", false),
-                queriesToLock
-        );
-        builder.setQueryLock(queryLock);
-        chunkEngine.setQueryLock(queryLock);
+        builder.setQueriesToLock(queriesToLock);
+
+        cluster = new HazelcastCluster()
+                .addHost("localhost")
+                .start();
+
+        builder.setShardingCluster(cluster);
+        sharding = new ShardingFacade(builder.build());
+
+        chunkEngine.setShardingCluster(cluster, queriesToLock);
 
         cluster.addMessageListener(new MessageListener() {
             @Override
@@ -86,11 +84,6 @@ public class ClusterInstance {
                 }
             }
         });
-
-        Sharding shardingObj = builder.build();
-        sharding = new ShardingFacade(shardingObj);
-        cluster.addMessageOriginator(shardingObj);
-        cluster.addMessageListener(shardingObj);
     }
 
     public void shutdown() {

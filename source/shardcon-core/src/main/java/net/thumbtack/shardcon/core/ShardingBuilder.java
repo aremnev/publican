@@ -1,6 +1,8 @@
 package net.thumbtack.shardcon.core;
 
 import fj.F;
+import net.thumbtack.shardcon.cluster.MessageSender;
+import net.thumbtack.shardcon.cluster.ShardingCluster;
 import net.thumbtack.shardcon.core.query.Query;
 
 import java.util.*;
@@ -12,13 +14,17 @@ import static net.thumbtack.helper.Util.*;
  */
 public class ShardingBuilder {
 
+    public static final String QUERY_LOCK_NAME = "queryLock";
+    public static final String IS_LOCKED_VALUE_NAME = "isLocked";
+
     private static final int DEFAULT_WORK_THREADS = 10;
 
     private KeyMapper keyMapper;
     private int workTreads = DEFAULT_WORK_THREADS;
-    private List<Shard> shards = new ArrayList<>();
-    private Map<Long, Query> queryMap = new HashMap<>();
-    private QueryLock queryLock;
+    private List<Shard> shards = new ArrayList<>(0);
+    private Map<Long, Query> queryMap = new HashMap<>(0);
+    private List<Long> queriesToLock = new ArrayList<>(0);
+    private ShardingCluster shardingCluster;
 
     /**
      * Sets shards.
@@ -61,8 +67,13 @@ public class ShardingBuilder {
         return this;
     }
 
-    public ShardingBuilder setQueryLock(QueryLock queryLock) {
-        this.queryLock = queryLock;
+    public ShardingBuilder setQueriesToLock(List<Long> queriesToLock) {
+        this.queriesToLock = new ArrayList<>(queriesToLock);
+        return this;
+    }
+
+    public ShardingBuilder setShardingCluster(ShardingCluster shardingCluster) {
+        this.shardingCluster = shardingCluster;
         return this;
     }
 
@@ -80,8 +91,20 @@ public class ShardingBuilder {
             }));
         }
 
-        Sharding sharding = new Sharding(queryMap, shards, keyMapper, workTreads);
-        sharding.setQueryLock(queryLock);
+        QueryLock queryLock = null;
+        MessageSender messageSender = null;
+        if (shardingCluster != null) {
+            queryLock = new QueryLock(
+                    shardingCluster.getLock(QUERY_LOCK_NAME),
+                    shardingCluster.getMutableValue(IS_LOCKED_VALUE_NAME, false),
+                    queriesToLock
+            );
+            messageSender = shardingCluster;
+        }
+        Sharding sharding = new Sharding(queryMap, shards, keyMapper, workTreads, queryLock, messageSender);
+        if (shardingCluster != null) {
+            shardingCluster.addMessageListener(sharding);
+        }
         return sharding;
     }
 }

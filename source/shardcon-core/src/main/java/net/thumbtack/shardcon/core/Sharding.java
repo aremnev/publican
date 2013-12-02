@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 /**
  * The main entry point into the library. It provides the interface to execution of queries.
  */
-public class Sharding implements MessageOriginator, MessageListener {
+public class Sharding implements MessageListener {
 
     private static final long INVALID_ID = Long.MIN_VALUE;
 
@@ -43,6 +43,19 @@ public class Sharding implements MessageOriginator, MessageListener {
                 ((QueryAsync) query).setExecutor(executor);
             }
         }
+    }
+
+    /**
+     * Constructor.
+     * @param queryRegistry The query map.
+     * @param shards The shards.
+     * @param keyMapper The key mapper.
+     * @param workThreads The number of work threads.
+     */
+    public Sharding(Map<Long, Query> queryRegistry, Iterable<Shard> shards, KeyMapper keyMapper, int workThreads, QueryLock queryLock, MessageSender messageSender) {
+        this(queryRegistry, shards, keyMapper, workThreads);
+        this.queryLock = queryLock;
+        this.messageSender = messageSender;
     }
 
     public void addShard(Shard shard) {
@@ -172,10 +185,5 @@ public class Sharding implements MessageOriginator, MessageListener {
         if (message instanceof NewShardEvent) {
             addShard(((NewShardEvent) message).getShard());
         }
-    }
-
-    @Override
-    public void setMessageSender(MessageSender messageSender) {
-        this.messageSender = messageSender;
     }
 }
