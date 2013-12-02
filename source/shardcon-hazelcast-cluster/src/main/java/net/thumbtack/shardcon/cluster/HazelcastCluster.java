@@ -58,7 +58,7 @@ public class HazelcastCluster implements ShardingCluster {
     }
 
     @Override
-    public <T> Mutable<T> getMutableValue(String valueName, T defaultValue) {
+    public <T extends Serializable> Mutable<T> getMutableValue(String valueName, T defaultValue) {
         final List<T> valueWrapper = hazelcast.getList(valueName);
         Lock lock = hazelcast.getLock(valueName);
         lock.lock();
