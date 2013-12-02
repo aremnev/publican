@@ -1,6 +1,6 @@
 package net.thumbtack.shardcon.chunk;
 
-import net.thumbtack.shardcon.core.cluster.Event;
+import net.thumbtack.shardcon.cluster.Event;
 
 import java.io.IOException;
 

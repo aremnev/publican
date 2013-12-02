@@ -1,8 +1,6 @@
 package net.thumbtack.shardcon.core;
 
 import fj.F;
-import net.thumbtack.shardcon.core.cluster.EventProcessor;
-import net.thumbtack.shardcon.core.cluster.ShardingCluster;
 import net.thumbtack.shardcon.core.query.Query;
 
 import java.util.*;

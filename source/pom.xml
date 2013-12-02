@@ -18,9 +18,11 @@
 
 	<modules>
 		<module>shardcon-core</module>
-		<module>shardcon-mysql</module>
+		<module>shardcon-jdbc</module>
 		<module>shardcon-memcached</module>
 		<module>shardcon-redis</module>
+		<module>shardcon-hazelcast-cluster</module>
+		<module>shardcon-common-test</module>
 	</modules>
 
 	<dependencies>

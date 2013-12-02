@@ -2,9 +2,12 @@ package net.thumbtack.shardcon.chunk;
 
 import fj.F;
 import net.thumbtack.helper.NamedThreadFactory;
+import net.thumbtack.shardcon.cluster.Event;
+import net.thumbtack.shardcon.cluster.EventListener;
+import net.thumbtack.shardcon.cluster.EventProcessor;
+import net.thumbtack.shardcon.cluster.NewShardEvent;
 import net.thumbtack.shardcon.core.KeyMapper;
 import net.thumbtack.shardcon.core.QueryLock;
-import net.thumbtack.shardcon.core.cluster.*;
 import net.thumbtack.shardcon.core.Shard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

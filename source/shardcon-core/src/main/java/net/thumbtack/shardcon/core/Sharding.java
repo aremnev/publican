@@ -1,8 +1,10 @@
 package net.thumbtack.shardcon.core;
 
 import net.thumbtack.helper.NamedThreadFactory;
-import net.thumbtack.shardcon.core.cluster.*;
-import net.thumbtack.shardcon.core.cluster.EventListener;
+import net.thumbtack.shardcon.cluster.Event;
+import net.thumbtack.shardcon.cluster.EventProcessor;
+import net.thumbtack.shardcon.cluster.NewShardEvent;
+import net.thumbtack.shardcon.cluster.EventListener;
 import net.thumbtack.shardcon.core.query.*;
 
 import java.util.*;
