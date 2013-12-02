@@ -49,9 +49,9 @@ public abstract class QueryAsync implements Query {
                         logger().debug(connection.toString());
                     }
 
-                    connection.open();
                     U res = null;
                     try {
+                        connection.open();
                         res = closure.call(connection);
                         if (isUpdate()) {
                             connection.commit();
