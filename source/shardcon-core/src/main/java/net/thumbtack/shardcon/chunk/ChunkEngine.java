@@ -77,7 +77,7 @@ public class ChunkEngine implements EventProcessor, KeyMapper {
                 try {
                     if (migration.call()) {
                         if (listener != null) {
-                            listener.onEvent(new MovedEvent(bucketId, toShardId));
+                            listener.onEvent(new MigrationEvent(bucketId, toShardId));
                         }
                         migration.finish();
                     }
@@ -113,11 +113,11 @@ public class ChunkEngine implements EventProcessor, KeyMapper {
 
     @Override
     public void onEvent(Event event) {
-        if (event.getId() == ShardAddedEvent.ID) {
-            Shard newShard = ((ShardAddedEvent) event).getEventObject();
+        if (event.getId() == NewShardEvent.ID) {
+            Shard newShard = ((NewShardEvent) event).getEventObject();
             shards.put(newShard.getId(), newShard);
-        } else if (event.getId() == MovedEvent.ID) {
-            MigrationInfo migrationInfo = ((MovedEvent) event).getEventObject();
+        } else if (event.getId() == MigrationEvent.ID) {
+            MigrationInfo migrationInfo = ((MigrationEvent) event).getEventObject();
             mapper.moveBucket(migrationInfo.getBucketId(), migrationInfo.getToShardId());
         }
     }

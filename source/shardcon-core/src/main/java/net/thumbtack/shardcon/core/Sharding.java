@@ -49,7 +49,7 @@ public class Sharding implements EventProcessor {
         if (! shards.containsKey(shard.getId())) {
             shards.put(shard.getId(), shard);
             if (eventListener != null) {
-                eventListener.onEvent(new ShardAddedEvent(shard));
+                eventListener.onEvent(new NewShardEvent(shard));
             }
         }
     }
@@ -169,8 +169,8 @@ public class Sharding implements EventProcessor {
 
     @Override
     public void onEvent(Event event) {
-        if (event.getId() == ShardAddedEvent.ID) {
-            addShard(((ShardAddedEvent) event).getEventObject());
+        if (event.getId() == NewShardEvent.ID) {
+            addShard(((NewShardEvent) event).getEventObject());
         }
     }
 

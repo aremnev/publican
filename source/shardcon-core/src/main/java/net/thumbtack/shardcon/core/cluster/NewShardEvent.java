@@ -4,7 +4,7 @@ import net.thumbtack.shardcon.core.Shard;
 
 import java.io.IOException;
 
-public class ShardAddedEvent implements Event<Shard> {
+public class NewShardEvent implements Event<Shard> {
 
     private static final long serialVersionUID = 6516336392859700813L;
 
@@ -12,9 +12,9 @@ public class ShardAddedEvent implements Event<Shard> {
 
     private Shard shard;
 
-    public ShardAddedEvent() {}
+    public NewShardEvent() {}
 
-    public ShardAddedEvent(Shard shard) {
+    public NewShardEvent(Shard shard) {
         this.shard = shard;
     }
 

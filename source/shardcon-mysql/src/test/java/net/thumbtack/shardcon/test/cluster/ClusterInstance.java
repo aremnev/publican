@@ -4,9 +4,9 @@ import fj.F;
 import net.thumbtack.helper.Util;
 import net.thumbtack.shardcon.ShardingFacade;
 import net.thumbtack.shardcon.chunk.ChunkEngine;
+import net.thumbtack.shardcon.chunk.MigrationEvent;
 import net.thumbtack.shardcon.chunk.MigrationHelper;
 import net.thumbtack.shardcon.chunk.MigrationInfo;
-import net.thumbtack.shardcon.chunk.MovedEvent;
 import net.thumbtack.shardcon.core.QueryLock;
 import net.thumbtack.shardcon.core.Shard;
 import net.thumbtack.shardcon.core.ShardingBuilder;
@@ -75,8 +75,8 @@ public class ClusterInstance {
         cluster.addEventProcessor(new EventProcessor() {
             @Override
             public void onEvent(Event event) {
-                if (event.getId() == MovedEvent.ID) {
-                    final MigrationInfo migrationInfo = ((MovedEvent) event).getEventObject();
+                if (event.getId() == MigrationEvent.ID) {
+                    final MigrationInfo migrationInfo = ((MigrationEvent) event).getEventObject();
                     Shard shard = find(shards, new F<Shard, Boolean>() {
                         @Override
                         public Boolean f(Shard shard) {

@@ -4,7 +4,7 @@ import net.thumbtack.shardcon.core.cluster.Event;
 
 import java.io.IOException;
 
-public class MovedEvent implements Event<MigrationInfo> {
+public class MigrationEvent implements Event<MigrationInfo> {
 
     private static final long serialVersionUID = 2754942794625233215L;
 
@@ -12,9 +12,9 @@ public class MovedEvent implements Event<MigrationInfo> {
 
     private MigrationInfo migrationInfo;
 
-    public MovedEvent() {}
+    public MigrationEvent() {}
 
-    public MovedEvent(int bucketId, int toShardId) {
+    public MigrationEvent(int bucketId, int toShardId) {
         migrationInfo = new MigrationInfo(bucketId, toShardId);
     }
 
