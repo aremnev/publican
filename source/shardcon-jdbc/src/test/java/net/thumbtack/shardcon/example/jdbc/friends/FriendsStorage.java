@@ -25,7 +25,7 @@ public class FriendsStorage implements Storage {
         shardProps.load(Util.getResourceAsReader("H2-shard.properties"));
         List<Shard> shards = JdbcShard.fromProperties(shardProps);
         Map<Integer, Shard> bucketToShard = ChunkEngine.mapBucketsFromProperties(shards, shardProps);
-        ChunkEngine chunkEngine = new ChunkEngine(bucketToShard);
+        ChunkEngine chunkEngine = new ChunkEngine(null, bucketToShard.values());
         ShardingBuilder builder = new ShardingBuilder();
         builder.setShards(shards);
         builder.setKeyMapper(chunkEngine);

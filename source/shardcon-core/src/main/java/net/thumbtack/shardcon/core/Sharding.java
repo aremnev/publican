@@ -22,7 +22,6 @@ public class Sharding implements MessageListener {
     private QueryLock queryLock;
 
     private Map<Long, Query> queryRegistry;
-    private MessageSender messageSender;
 
     /**
      * Constructor.
@@ -52,19 +51,9 @@ public class Sharding implements MessageListener {
      * @param keyMapper The key mapper.
      * @param workThreads The number of work threads.
      */
-    public Sharding(Map<Long, Query> queryRegistry, Iterable<Shard> shards, KeyMapper keyMapper, int workThreads, QueryLock queryLock, MessageSender messageSender) {
+    public Sharding(Map<Long, Query> queryRegistry, Iterable<Shard> shards, KeyMapper keyMapper, int workThreads, QueryLock queryLock) {
         this(queryRegistry, shards, keyMapper, workThreads);
         this.queryLock = queryLock;
-        this.messageSender = messageSender;
-    }
-
-    public void addShard(Shard shard) {
-        if (! shards.containsKey(shard.getId())) {
-            shards.put(shard.getId(), shard);
-            if (messageSender != null) {
-                messageSender.sendMessage(new NewShardEvent(shard));
-            }
-        }
     }
 
     /**
@@ -183,7 +172,8 @@ public class Sharding implements MessageListener {
     @Override
     public void onMessage(Serializable message) {
         if (message instanceof NewShardEvent) {
-            addShard(((NewShardEvent) message).getShard());
+            Shard shard = ((NewShardEvent) message).getShard();
+            shards.put(shard.getId(), shard);
         }
     }
 }

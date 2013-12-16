@@ -92,16 +92,14 @@ public class ShardingBuilder {
         }
 
         QueryLock queryLock = null;
-        MessageSender messageSender = null;
         if (shardingCluster != null) {
             queryLock = new QueryLock(
                     shardingCluster.getLock(QUERY_LOCK_NAME),
                     shardingCluster.getMutableValue(IS_LOCKED_VALUE_NAME, false),
                     queriesToLock
             );
-            messageSender = shardingCluster;
         }
-        Sharding sharding = new Sharding(queryMap, shards, keyMapper, workTreads, queryLock, messageSender);
+        Sharding sharding = new Sharding(queryMap, shards, keyMapper, workTreads, queryLock);
         if (shardingCluster != null) {
             shardingCluster.addMessageListener(sharding);
         }

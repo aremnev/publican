@@ -177,8 +177,8 @@ public class Util {
      * @param <V> The value type.
      * @return The map.
      */
-    public static <K, V> Map<K, V> index(Collection<V> collection, F<V, K> mapping) {
-        Map<K, V> map = new HashMap<>(collection.size());
+    public static <K, V> Map<K, V> index(Iterable<V> collection, F<V, K> mapping) {
+        Map<K, V> map = new HashMap<>();
         for (V v : collection) {
             map.put(mapping.f(v), v);
         }

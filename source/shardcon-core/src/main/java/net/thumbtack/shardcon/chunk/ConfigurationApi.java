@@ -1,5 +1,7 @@
 package net.thumbtack.shardcon.chunk;
 
+import net.thumbtack.shardcon.core.Shard;
+
 import java.util.Map;
 
 public interface ConfigurationApi {
@@ -21,7 +23,7 @@ public interface ConfigurationApi {
     /**
      * @param shardId New shard id.
      */
-    void addShard(int shardId);
+    void addShard(Shard shardId);
 
     /**
      * @return Chunk-to-shard map of inactive chunks.

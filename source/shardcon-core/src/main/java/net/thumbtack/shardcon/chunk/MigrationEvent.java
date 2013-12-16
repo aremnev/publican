@@ -10,11 +10,14 @@ public class MigrationEvent implements Serializable {
     private int chunkId;
     private int toShardId;
 
+    private long newVersion;
+
     public MigrationEvent() {}
 
-    public MigrationEvent(int chunkId, int toShardId) {
+    public MigrationEvent(int chunkId, int toShardId, long newVersion) {
         this.chunkId = chunkId;
         this.toShardId = toShardId;
+        this.newVersion = newVersion;
     }
 
     public int getChunkId() {
@@ -25,15 +28,21 @@ public class MigrationEvent implements Serializable {
         return toShardId;
     }
 
+    public long getNewVersion() {
+        return newVersion;
+    }
+
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
         out.writeInt(chunkId);
         out.writeInt(toShardId);
+        out.writeLong(newVersion);
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         chunkId = in.readInt();
         toShardId = in.readInt();
+        newVersion = in.readLong();
     }
 }

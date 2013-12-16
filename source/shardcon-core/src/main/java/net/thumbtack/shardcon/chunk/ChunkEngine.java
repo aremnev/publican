@@ -4,48 +4,58 @@ import fj.F;
 import net.thumbtack.helper.NamedThreadFactory;
 import net.thumbtack.shardcon.cluster.*;
 import net.thumbtack.shardcon.core.*;
+import org.apache.commons.lang.mutable.MutableLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.Lock;
 
 import static net.thumbtack.helper.Util.*;
 
 /**
  *
  */
-public class ChunkEngine implements KeyMapper {
+public class ChunkEngine implements KeyMapper, ConfigurationApi {
 
     private static final Logger logger = LoggerFactory.getLogger(ChunkEngine.class);
 
+    private static final String CONFIGURATION_LOCK_NAME = "configuration_lock";
+
+    private final ConfigurationBroker configurationBroker;
+    private final MutableLong configurationVersion = new MutableLong();
+    private final ChunkMapper mapper;
+    private final Map<Integer, Shard> shardMap;
+    private final Map<Integer, Chunk> chunkMap;
+
+    private final ExecutorService executor;
+
     private MessageSender messageSender;
-    private ChunkMapper mapper;
-    private Map<Integer, Shard> shards;
-    private Map<Integer, Chunk> buckets;
-    private ExecutorService executor;
+
     private QueryLock queryLock;
 
-    public ChunkEngine(Map<Integer, Shard> bucketToShard) {
-        Map<Integer, Integer> bucketToShardId = new HashMap<>(bucketToShard.size());
-        for (int bucketId : bucketToShard.keySet()) {
-            bucketToShardId.put(bucketId, bucketToShard.get(bucketId).getId());
-        }
-        final long bucketSize = Chunk.bucketSize(bucketToShard.size());
-        mapper = new ChunkMapper(bucketToShardId, new KeyMapper() {
+    private Lock configurationLock;
+
+    public ChunkEngine(ConfigurationBroker configurationBroker, Iterable<Shard> shards) {
+        this.configurationBroker = configurationBroker;
+        configurationVersion.setValue(configurationBroker.getVersion());
+        Map<Integer, Integer> chunkToShardId = configurationBroker.getChunkToShardMap();
+        final long chunkSize = Chunk.chunkSize(chunkToShardId.size());
+        mapper = new ChunkMapper(chunkToShardId, new KeyMapper() {
             @Override
             public int shard(long key) {
-                return (int) (key / bucketSize);
+                return (int) (key / chunkSize);
             }
         });
-        shards = new ConcurrentHashMap<>(index(bucketToShard.values(), new F<Shard, Integer>() {
+        shardMap = new ConcurrentHashMap<>(index(shards, new F<Shard, Integer>() {
             @Override
             public Integer f(Shard shard) {
                 return shard.getId();
             }
         }));
-        buckets = index(Chunk.buildBuckets(bucketToShard.size()), new F<Chunk, Integer>() {
+        chunkMap = index(Chunk.buildChunks(chunkToShardId.size()), new F<Chunk, Integer>() {
             @Override
             public Integer f(Chunk bucket) {
                 return bucket.id;
@@ -55,6 +65,8 @@ public class ChunkEngine implements KeyMapper {
     }
 
     public void setShardingCluster(ShardingCluster shardingCluster, List<Long> queriesToLock) {
+        configurationLock = shardingCluster.getLock(CONFIGURATION_LOCK_NAME);
+
         queryLock = new QueryLock(
                 shardingCluster.getLock(ShardingBuilder.QUERY_LOCK_NAME),
                 shardingCluster.getMutableValue(ShardingBuilder.IS_LOCKED_VALUE_NAME, false),
@@ -66,19 +78,21 @@ public class ChunkEngine implements KeyMapper {
             public void onMessage(Serializable message) {
                 if (message instanceof NewShardEvent) {
                     Shard newShard = ((NewShardEvent) message).getShard();
-                    shards.put(newShard.getId(), newShard);
+                    shardMap.put(newShard.getId(), newShard);
+                    configurationVersion.setValue(((NewShardEvent) message).getNewVersion());
                 } else if (message instanceof MigrationEvent) {
                     MigrationEvent migrationEvent = (MigrationEvent) message;
                     mapper.moveBucket(migrationEvent.getChunkId(), migrationEvent.getToShardId());
+                    configurationVersion.setValue(((MigrationEvent) message).getNewVersion());
                 }
             }
         });
     }
 
     public void migrate(final int bucketId, final int toShardId, MigrationHelper helper) {
-        Chunk bucket = buckets.get(bucketId);
-        Shard fromShard = shards.get(mapper.shard(bucket.fromId));
-        Shard toShard = shards.get(toShardId);
+        Chunk bucket = chunkMap.get(bucketId);
+        Shard fromShard = shardMap.get(mapper.shard(bucket.fromId));
+        Shard toShard = shardMap.get(toShardId);
         logger.info("Starting migration of bucket {} from shard {} to shard {}", bucketId, fromShard.getId(), toShardId);
         final Migration migration = new Migration(bucket, fromShard, toShard, helper);
         executor.submit(new Callable<Void>() {
@@ -90,7 +104,7 @@ public class ChunkEngine implements KeyMapper {
                 try {
                     if (migration.call()) {
                         if (messageSender != null) {
-                            messageSender.sendMessage(new MigrationEvent(bucketId, toShardId));
+//                            messageSender.sendMessage(new MigrationEvent(bucketId, toShardId));
                         }
                         migration.finish();
                     }
@@ -127,5 +141,49 @@ public class ChunkEngine implements KeyMapper {
     @Override
     public int shard(long key) {
         return mapper.shard(key);
+    }
+
+    @Override
+    public Map<Integer, Integer> getChunkToShardMap() {
+        return configurationBroker.getChunkToShardMap();
+    }
+
+    @Override
+    public void moveChunk(int chunk, int shardTo) {
+
+    }
+
+    @Override
+    public void addShard(Shard shard) {
+        logger.info("Adding new shard {}", shard);
+        lockConfiguration();
+        try {
+            configurationVersion.setValue(configurationBroker.addShard(configurationVersion.longValue(), shard.getId()));
+            messageSender.sendMessage(new NewShardEvent(shard, configurationVersion.longValue()));
+        } finally {
+            unlockConfiguration();
+        }
+    }
+
+    @Override
+    public Map<Integer, Integer> getInactiveChunks() {
+        return null;
+    }
+
+    @Override
+    public void removeInactiveChunk(int chunk, int shardFrom) {
+
+    }
+
+    private void lockConfiguration() {
+        if (configurationLock != null) {
+            configurationLock.lock();
+        }
+    }
+
+    private void unlockConfiguration() {
+        if (configurationLock != null) {
+            configurationLock.unlock();
+        }
     }
 }
