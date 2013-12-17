@@ -32,7 +32,7 @@ public class ChunkEngine implements KeyMapper, ConfigurationApi {
 
     private final ExecutorService executor;
 
-    private MessageSender messageSender;
+    private ShardingCluster shardingCluster;
 
     private QueryLock queryLock;
 
@@ -62,6 +62,7 @@ public class ChunkEngine implements KeyMapper, ConfigurationApi {
             }
         });
         executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("chunk-migration"));
+        logger.info("ChunkEngine instantiated");
     }
 
     public void setShardingCluster(ShardingCluster shardingCluster, List<Long> queriesToLock) {
@@ -72,8 +73,10 @@ public class ChunkEngine implements KeyMapper, ConfigurationApi {
                 shardingCluster.getMutableValue(ShardingBuilder.IS_LOCKED_VALUE_NAME, false),
                 queriesToLock
         );
-        messageSender = shardingCluster;
+        this.shardingCluster = shardingCluster;
         shardingCluster.addMessageListener(new MessageListener() {
+            private MessageDeliveredListener messageDeliveredListener;
+
             @Override
             public void onMessage(Serializable message) {
                 if (message instanceof NewShardEvent) {
@@ -85,37 +88,15 @@ public class ChunkEngine implements KeyMapper, ConfigurationApi {
                     mapper.moveBucket(migrationEvent.getChunkId(), migrationEvent.getToShardId());
                     configurationVersion.setValue(((MigrationEvent) message).getNewVersion());
                 }
+                messageDeliveredListener.onDelivered(message);
             }
-        });
-    }
 
-    public void migrate(final int bucketId, final int toShardId, MigrationHelper helper) {
-        Chunk bucket = chunkMap.get(bucketId);
-        Shard fromShard = shardMap.get(mapper.shard(bucket.fromId));
-        Shard toShard = shardMap.get(toShardId);
-        logger.info("Starting migration of bucket {} from shard {} to shard {}", bucketId, fromShard.getId(), toShardId);
-        final Migration migration = new Migration(bucket, fromShard, toShard, helper);
-        executor.submit(new Callable<Void>() {
             @Override
-            public Void call() throws Exception {
-                if (queryLock != null) {
-                    queryLock.lock();
-                }
-                try {
-                    if (migration.call()) {
-                        if (messageSender != null) {
-//                            messageSender.sendMessage(new MigrationEvent(bucketId, toShardId));
-                        }
-                        migration.finish();
-                    }
-                } finally {
-                    if (queryLock != null) {
-                        queryLock.unlock();
-                    }
-                }
-                return null;
+            public void setMessageDeliveredListener(MessageDeliveredListener listener) {
+                messageDeliveredListener = listener;
             }
         });
+        logger.info("ChunkEngine connected to the cluster {}", shardingCluster);
     }
 
     public static Map<Integer, Shard> mapBucketsFromProperties(List<Shard> shards, Properties props) {
@@ -149,8 +130,31 @@ public class ChunkEngine implements KeyMapper, ConfigurationApi {
     }
 
     @Override
-    public void moveChunk(int chunk, int shardTo) {
-
+    public void migrateChunk(final int chunk, final int shardTo, MigrationHelper migrationHelper) {
+        Chunk bucket = chunkMap.get(chunk);
+        Shard fromShard = shardMap.get(mapper.shard(bucket.fromId));
+        Shard toShard = shardMap.get(shardTo);
+        logger.info("Starting migration of bucket {} from shard {} to shard {}", chunk, fromShard.getId(), shardTo);
+        final Migration migration = new Migration(bucket, fromShard, toShard, migrationHelper);
+        executor.submit(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                lockConfiguration();
+                lockQueries();
+                try {
+                    if (migration.call()) {
+                        if (shardingCluster != null) {
+                            configurationVersion.setValue(configurationBroker.moveChunk(configurationVersion.longValue(), chunk, shardTo));
+                            shardingCluster.sendMessage(new MigrationEvent(chunk, shardTo, configurationVersion.longValue()));
+                        }
+                    }
+                } finally {
+                    unlockQueries();
+                    unlockConfiguration();
+                }
+                return null;
+            }
+        });
     }
 
     @Override
@@ -158,21 +162,46 @@ public class ChunkEngine implements KeyMapper, ConfigurationApi {
         logger.info("Adding new shard {}", shard);
         lockConfiguration();
         try {
-            configurationVersion.setValue(configurationBroker.addShard(configurationVersion.longValue(), shard.getId()));
-            messageSender.sendMessage(new NewShardEvent(shard, configurationVersion.longValue()));
+            configurationVersion.setValue(configurationBroker.addShard(configurationVersion.longValue(), shard));
+            NewShardEvent event = new NewShardEvent(shard, configurationVersion.longValue());
+            shardingCluster.sendMessage(event);
+            try {
+                shardingCluster.waitDelivery(NewShardEvent.class);
+            } catch (InterruptedException e) {
+                logger.warn("waitDelivery of {} interrupted", event);
+            }
         } finally {
             unlockConfiguration();
         }
     }
 
     @Override
-    public Map<Integer, Integer> getInactiveChunks() {
-        return null;
+    public List<Shard> getShards() {
+        return configurationBroker.getShards();
     }
 
     @Override
-    public void removeInactiveChunk(int chunk, int shardFrom) {
+    public Map<Integer, Integer> getInactiveChunks() {
+        return configurationBroker.getInactiveChunks();
+    }
 
+    @Override
+    public void removeInactiveChunk(final int chunk, final int shardFrom, RemoveHelper removeHelper) {
+        final Remove remove = new Remove(chunkMap.get(chunk), shardMap.get(shardFrom), removeHelper);
+        executor.submit(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                lockConfiguration();
+                try {
+                    if (remove.call()) {
+                        configurationBroker.removeInactiveChunk(chunk, shardFrom);
+                    }
+                } finally {
+                    unlockConfiguration();
+                }
+                return null;
+            }
+        });
     }
 
     private void lockConfiguration() {
@@ -184,6 +213,18 @@ public class ChunkEngine implements KeyMapper, ConfigurationApi {
     private void unlockConfiguration() {
         if (configurationLock != null) {
             configurationLock.unlock();
+        }
+    }
+
+    private void lockQueries() {
+        if (queryLock != null) {
+            queryLock.lock();
+        }
+    }
+
+    private void unlockQueries() {
+        if (queryLock != null) {
+            queryLock.unlock();
         }
     }
 }

@@ -25,6 +25,8 @@ public interface ShardingCluster extends MessageSender {
      */
     void addMessageListener(MessageListener messageListener);
 
+    void waitDelivery(Class<?> messageClass) throws InterruptedException;
+
     @Override
     /**
      * Sends distributed message.

@@ -8,4 +8,11 @@ import java.io.Serializable;
 public interface MessageListener {
 
     void onMessage(Serializable message);
+
+    void setMessageDeliveredListener(MessageDeliveredListener listener);
+
+    public interface MessageDeliveredListener {
+
+        void onDelivered(Serializable message);
+    }
 }

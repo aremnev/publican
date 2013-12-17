@@ -34,11 +34,4 @@ public interface MigrationHelper<T> {
      * @return Function that writes entity.
      */
     QueryClosure<Void> putEntity(T entity);
-
-    /**
-     * @param idFrom Min id.
-     * @param idTo Max id.
-     * @return Function that removes entities with id in [idFrom, idTo]
-     */
-    QueryClosure<Void> remove(long idFrom, long idTo);
 }

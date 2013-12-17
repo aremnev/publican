@@ -63,11 +63,6 @@ public class Migration implements Callable<Boolean> {
         return migrationStep.f(0L);
     }
 
-    public void finish() {
-        Query update = new UpdateSpecShard();
-        update.query(helper.remove(bucket.fromId, bucket.toId), getShardConnection(fromShard));
-    }
-
     private List<Connection> getShardConnection(Shard shard) {
         List<Connection> connections = new ArrayList<Connection>(1);
         connections.add(shard.getConnection());

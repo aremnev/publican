@@ -23,6 +23,8 @@ public class Sharding implements MessageListener {
 
     private Map<Long, Query> queryRegistry;
 
+    private MessageDeliveredListener messageDeliveredListener;
+
     /**
      * Constructor.
      * @param queryRegistry The query map.
@@ -175,5 +177,11 @@ public class Sharding implements MessageListener {
             Shard shard = ((NewShardEvent) message).getShard();
             shards.put(shard.getId(), shard);
         }
+        messageDeliveredListener.onDelivered(message);
+    }
+
+    @Override
+    public void setMessageDeliveredListener(MessageDeliveredListener listener) {
+        messageDeliveredListener = listener;
     }
 }

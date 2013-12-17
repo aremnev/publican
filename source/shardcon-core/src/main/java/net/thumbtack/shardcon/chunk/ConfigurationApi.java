@@ -2,6 +2,7 @@ package net.thumbtack.shardcon.chunk;
 
 import net.thumbtack.shardcon.core.Shard;
 
+import java.util.List;
 import java.util.Map;
 
 public interface ConfigurationApi {
@@ -18,12 +19,17 @@ public interface ConfigurationApi {
      * @param chunk Chunk to move id.
      * @param shardTo Destination shard id.
      */
-    void moveChunk(int chunk, int shardTo);
+    void migrateChunk(int chunk, int shardTo, MigrationHelper migrationHelper);
 
     /**
-     * @param shardId New shard id.
+     * @param shard New shard id.
      */
-    void addShard(Shard shardId);
+    void addShard(Shard shard);
+
+    /**
+     * @return The all shards.
+     */
+    List<Shard> getShards();
 
     /**
      * @return Chunk-to-shard map of inactive chunks.
@@ -37,5 +43,5 @@ public interface ConfigurationApi {
      * @param chunk Chunk to remove id
      * @param shardFrom Shard to remove from id.
      */
-    void removeInactiveChunk(int chunk, int shardFrom);
+    void removeInactiveChunk(int chunk, int shardFrom, RemoveHelper removeHelper);
 }

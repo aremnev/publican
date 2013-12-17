@@ -1,5 +1,8 @@
 package net.thumbtack.shardcon.chunk;
 
+import net.thumbtack.shardcon.core.Shard;
+
+import java.util.List;
 import java.util.Map;
 
 public interface ConfigurationBroker {
@@ -27,10 +30,15 @@ public interface ConfigurationBroker {
 
     /**
      * @param version Current client version.
-     * @param shardId New shard id.
+     * @param shard New shard.
      * @return New configuration version.
      */
-    long addShard(long version, int shardId);
+    long addShard(long version, Shard shard);
+
+    /**
+     * @return The all shards.
+     */
+    List<Shard> getShards();
 
     /**
      * @return Chunk-to-shard map of inactive chunks.
