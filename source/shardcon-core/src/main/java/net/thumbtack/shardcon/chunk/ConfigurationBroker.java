@@ -36,6 +36,13 @@ public interface ConfigurationBroker {
     long addShard(long version, Shard shard);
 
     /**
+     * @param version Current client version.
+     * @param shardId Shard id.
+     * @return New configuration version.
+     */
+    long removeShard(long version, int shardId);
+
+    /**
      * @return The all shards.
      */
     List<Shard> getShards();

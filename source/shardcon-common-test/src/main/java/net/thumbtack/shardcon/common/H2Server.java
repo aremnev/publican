@@ -1,4 +1,4 @@
-package net.thumbtack.shardcon;
+package net.thumbtack.shardcon.common;
 
 import org.h2.tools.Server;
 import org.slf4j.Logger;

@@ -1,6 +1,6 @@
 package net.thumbtack.shardcon.test;
 
-import net.thumbtack.shardcon.H2Server;
+import net.thumbtack.shardcon.common.H2Server;
 import net.thumbtack.shardcon.Storage;
 import net.thumbtack.shardcon.test.jdbc.JdbcStorage;
 import org.slf4j.Logger;
@@ -10,7 +10,7 @@ public class ShardingSuite {
 
     private static final Logger logger = LoggerFactory.getLogger(ShardingSuite.class);
 
-    H2Server h2Server = new H2Server();
+    private H2Server h2Server = new H2Server();
 
     public Storage jdbcStorageAsync;
     public Storage jdbcStorageSync;

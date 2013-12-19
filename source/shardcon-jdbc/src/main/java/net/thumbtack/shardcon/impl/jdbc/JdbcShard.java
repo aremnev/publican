@@ -14,10 +14,10 @@ public class JdbcShard implements Shard {
     private static final long serialVersionUID = -6856118381704330390L;
 
     private static final String SHARD = "shard.";
-    private static final String DRIVER = ".driver";
-    private static final String URL = ".url";
-    private static final String USER = ".user";
-    private static final String PASSWORD = ".password";
+    private static final String DRIVER = "driver";
+    private static final String URL = "url";
+    private static final String USER = "user";
+    private static final String PASSWORD = "password";
 
     private int id;
     private String driver;
@@ -40,10 +40,10 @@ public class JdbcShard implements Shard {
         }
         List<Shard> result = new ArrayList<Shard>(shardIds.size());
         for (int shardId : shardIds) {
-            String driver = props.getProperty(SHARD + shardId + DRIVER);
-            String url = props.getProperty(SHARD + shardId + URL);
-            String user = props.getProperty(SHARD + shardId + USER);
-            String password = props.getProperty(SHARD + shardId + PASSWORD);
+            String driver = props.getProperty(SHARD + shardId + "." + DRIVER);
+            String url = props.getProperty(SHARD + shardId + "." + URL);
+            String user = props.getProperty(SHARD + shardId + "." + USER);
+            String password = props.getProperty(SHARD + shardId + "." + PASSWORD);
             result.add(new JdbcShard(shardId, driver, url, user, password));
         }
         return result;
@@ -65,6 +65,10 @@ public class JdbcShard implements Shard {
         this.password = password;
     }
 
+    public JdbcShard(int id) {
+        this.id = id;
+    }
+
     @Override
     public int getId() {
         return id;
@@ -73,6 +77,24 @@ public class JdbcShard implements Shard {
     @Override
     public Connection getConnection() {
         return new JdbcConnection(driver, url, user, password);
+    }
+
+    @Override
+    public Map<String, String> getProperties() {
+        Map<String, String> properties = new HashMap<>();
+        properties.put(DRIVER, driver);
+        properties.put(URL, url);
+        properties.put(USER, user);
+        properties.put(PASSWORD, password);
+        return properties;
+    }
+
+    @Override
+    public void setProperties(Map<String, String> properties) {
+        driver = properties.get(DRIVER);
+        url = properties.get(URL);
+        user = properties.get(USER);
+        password = properties.get(PASSWORD);
     }
 
     @Override
